@@ -1,0 +1,251 @@
+\chapterimage{Tools.jpg} % Chapter heading image
+
+\chapter{dataClay tool}\index{dataClay tool}
+\label{sec:dClayTool}
+
+In this chapter we present \textit{dClayTool}, the dataClay tool intended to be used for management operations such as accounting, class registering, or contract creation. It is very important to understand that this tool offers a friendly (and quite limited) version of the management API that should be enough for most dataClay users. 
+
+\section{Accounts}\index{account}
+
+In this section we present the options offered by the dataClay tool in order to manage user accounts.
+
+% ------- New account ---------
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{NewAccount} newaccount\_name newaccount\_pass}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Registers a new account in the system.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries newaccount\_name}: name of the new account to be created.
+    \item \texttt{\bfseries newaccount\_pass}: password of the new account.
+\end{itemize}
+ 
+\end{dBox}
+
+\section{Class models}\index{class}
+\label{sec:newModel}
+
+In this section we present the options offered by the dataClay tool in order to manage classes such as registering a class model or obtaining the corresponding class stubs.
+
+% ------- New Model ---------
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{NewModel} \newline user\_name user\_pass namespace\_name class\_path language \newline [-{}-prefetch on src\_path lib\_path | rop fetch\_depth src\_path lib\_path]}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Registers all classes contained in the class path provided. It is assumed that the class path is the main directory of the data model to be registered, and in case of containing subdirectories these represent different packages/modules.
+    
+    If the namespace where you want to include your class model does not exist, it is created.
+    
+    One of the supported languages must be chosen to specify which classes of the class path provided will be registered as part of the model.
+    
+    Notice that, in order to register classes using stubs of other namespaces or just previous registered classes, the corresponding stubs must be contained in the folder so dataClay will be able to annotate the association between classes (e.g. between an already registered and the new one).
+    
+    Also includes optional parameters to activate data prefetching. Note that these should only be used with a dataClay instance where prefetching is already activated, as discussed in Section \ref{sec:prefetchingTuning}.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries user\_name}: user registering the model.
+    \item \texttt{\bfseries user\_pass}: user's password.
+    \item \texttt{\bfseries namespace\_name}: namespace where the model will be registered.
+    \item \texttt{\bfseries class\_path}: class path where classes are registered.
+    \item \texttt{\bfseries language}: one of the supported languages (currently, \textit{python} or \textit{java}).
+\end{itemize}
+
+{\it Optional Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries --prefetch}: optional parameter that activates prefetching.
+    \item \texttt{\bfseries on}: activates the default prefetching.
+    \item \texttt{\bfseries src\_path}: path to directory of the application source code.
+    \item \texttt{\bfseries lib\_path}: path to directory that includes all libraries needed to compile the application.
+    \item \texttt{\bfseries rop}: activates the referenced-objects prefetching.
+    \item \texttt{\bfseries fetch\_depth}: number of levels of referenced objects that will be prefetched.
+\end{itemize}
+ 
+\end{dBox}
+
+% ------- Get Stubs ---------
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{GetStubs} \newline user\_name user\_pass namespace\_name stubs\_path}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves the stubs of a certain class model registered in a namespace. % considering all current model contracts including public and private.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries user\_name}: user requesting the stubs.
+    \item \texttt{\bfseries user\_pass}: user's password.
+    \item \texttt{\bfseries namespace\_name}: namespace of the class model to be retrieved.
+    \item \texttt{\bfseries stubs\_path}: folder where the downloaded stubs will be stored.
+\end{itemize}
+ 
+\end{dBox}
+
+% ------- New Namespace ---------
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{NewNamespace} \newline user\_name user\_pass namespace\_name class\_path language}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Registers a new namespace in the system.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries user\_name}: user registering the namespace.
+    \item \texttt{\bfseries user\_pass}: user's password.
+    \item \texttt{\bfseries namespace\_name}: name of the new namespace.
+    \item \texttt{\bfseries language}: one of the supported languages (currently, \textit{python} or \textit{java}).
+\end{itemize}
+ 
+\end{dBox}
+
+% ------- Get Namespaces ---------
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{GetNamespaces} \newline user\_name user\_pass}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves the namespaces the user has access to.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries user\_name}: user registering the namespace.
+    \item \texttt{\bfseries user\_pass}: user's password.
+\end{itemize}
+ 
+\end{dBox}
+
+% ------- Data Contracs ---------
+
+\section{Data contracts}\index{contract}
+
+In this section we present the options offered by the dataClay tool in order to manage datasets and data contracts.
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{NewDataContract} \newline user\_name user\_pass dataset\_name beneficiary\_name}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Registers a data contract to grant a user access to a specific private dataset.
+    
+    Only the owner of the dataset may grant users access to it.
+    
+    If the dataset does not exist, it is created as a new dataset owned by the user registering this contract.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries user\_name}: user that owns the dataset.
+    \item \texttt{\bfseries user\_pass}: user's password.
+    \item \texttt{\bfseries dataset\_name}: name of the dataset that will be shared through this contract.
+    \item \texttt{\bfseries beneficiary\_name}: user account that will benefit from this contract.
+\end{itemize}
+
+\end{dBox}
+
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{NewDataset} \newline user\_name user\_pass dataset\_name dataset\_type}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Registers a dataset to define its objects to be provided under same contract constraints.
+    
+    If the dataset is private, only the owner of the dataset may grant users access to it through a data contract.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries user\_name}: user that owns the dataset.
+    \item \texttt{\bfseries user\_pass}: user's password.
+    \item \texttt{\bfseries dataset\_name}: name of the dataset.
+    \item \texttt{\bfseries dataset\_type}: either 'public' or 'private'.
+\end{itemize}
+
+\end{dBox}
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{GetDatasets} \newline user\_name user\_pass}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves the datasets the user has access to.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries user\_name}: user that owns the dataset.
+    \item \texttt{\bfseries user\_pass}: user's password.
+\end{itemize}
+
+\end{dBox}
+
+
+\section{Backends}
+
+In this section we present other utilities that can be used to retrieve information from dataClay.
+
+% ------- GetBackends ---------
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{GetBackends} user\_name user\_pass language}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves backend names and hosts. Backend name can be used for LocalBackend in config file Section~\ref{sec:ClientConfigFiles}.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries user\_name}: user requesting backend info.
+    \item \texttt{\bfseries user\_pass}: user's password.
+    \item \texttt{\bfseries language}: one of the supported languages (currently, \textit{python} or \textit{java}).
+\end{itemize}
+
+\end{dBox}
+
+\FEDERATION{
+\input{Tool/dClayTool_federation.tex}
+}

@@ -1,0 +1,107 @@
+\section{Object extended methods: federation}
+\label{sec:JavaObjectFederation}
+
+There are cases where it is interesting to be able to access an object stored in a dataClay instance from another dataClay instance as if it belonged to both instances. More details about federation are presented in Section~\ref{sec:jFederation}.
+
+% ------- getFederation ------
+
+\begin{dBox}
+\texttt{public Set<DataClayInstance> \CALL{getFederation}()}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+ \item Retrieves all the dataClay instances where the object is federated. 
+ A DataClayInstance has a the id, name, hostname and port of a dataClay instance.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+ \item A set of DataClayInstance objects in which this object is federated. 
+ It can be empty if it is not federated.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using getFederation}
+\begin{lstlisting}
+Person p1 = Person.getByAlias("personalias");
+// using getFederation to check if it is federated
+Set<DataClayInstance> federation = p1.getFederation();
+return (!federation.size() == 0)
+\end{lstlisting}
+\end{tBox}
+
+% ------- federate ---------
+\begin{dBox}
+
+\texttt{public void \CALL{federate}(String dataClayName \newline [,boolean recursive]) throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Federates current object with external dataClay. For more information about federation, check section \ref{sec:jFederation}.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries dataClayName:} Name of the external dataClay. It must be previously registered.
+  \item \texttt{\bfseries recursive:} when this flag is TRUE, all objects referenced by the current one will also be federated (except those that are already present in the destination dataClay). When this parameter is not set, the default behavior is to perform a recursive federation.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+  \item If the object is not persistent or the external dataClay is not registered, a DataClayException is raised.
+
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using federate}
+\begin{lstlisting}
+Person p1 = Person.getByAlias("person1");
+// federating object and subobjects from our dataClay service to dataClay2
+p1.federate(external_dc_id);
+\end{lstlisting}
+\end{tBox}
+
+% ------- runFederated --------
+
+\begin{dBox}
+\texttt{public Object \CALL{runFederated}(DataClayInstance dcInfo, \newline String opID, Object[] params) throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Executes a specific method on a particular dataClay where the object is federated. Notice that currently this method is intended for synchronization purposes analogously to method \textit{runRemote}.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries dcInfo:} dataClay instance where the method must be executed.
+  \item \texttt{\bfseries opID:} ID of the method to be executed.
+  \item \texttt{\bfseries params:} The regular parameters of the method.
+\end{itemize}
+ 
+{\it Returns:}
+
+\begin{itemize}
+  \item The expected result from the execution of the specified method.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+  \item If this object is not federated with given dataClay instance, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}

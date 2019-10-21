@@ -1,0 +1,888 @@
+\chapterimage{Coffee.jpg} % Chapter heading image
+
+\chapter{Java API}
+\label{sec:JavaAPI}
+
+This chapter presents the Java API that can be used by applications divided into the following sections. First, in Section~\ref{sec:JavaGlobalAPI} we present the API intended to initialize and finish applications, as well as, to gather information about the system. In Section~\ref{sec:JavaObjectStore} we show the API for Object Store operations (GET(CLONE)/PUT/UPDATE). Next, in Section~\ref{sec:JavaObjectExtendedMethods} we introduce extended methods to expand object store operations from an Object-oriented programming perspective. In Section~\ref{sec:JavaObjectAdvanced} we show advanced extensions that will only be needed by a subset of applications. Finally, we present extra concepts such as error handling in Section~\ref{sec:JavaErrorHandling}, replica management in Section~\ref{sec:JavaReplication} and further considerations in Section~\ref{sec:JavaConsiderations}.
+
+Notice that current supported Java version is 1.8 (OpenJDK 8, reference implementation of Java SE 8).
+
+\section{Global API}
+\label{sec:JavaGlobalAPI}
+
+In this section, we present a set of calls that are not linked to any given object, but are general to the system.
+
+In Java, they can be called through \textit{DataClay} main class by including the import:
+
+\colorbox{basecolor!20}{\texttt{import dataclay.api.DataClay}}
+
+
+% ------- finish ---------
+
+\begin{dBox}
+\texttt{public static void \CALL{finish}() throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Finishes a session with dataClay that has been previously created using init.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the session is not initialized or an error occurs while finishing the session, a DataClayException is thrown.
+\end{itemize}
+ 
+\end{dBox}
+
+
+% ------- getBackends ---------
+
+\begin{dBox}
+\label{call:JavaGetBackends}
+\texttt{public static Map<BackendID, Backend> \CALL{getBackends}() }
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves the available backends in the system.
+\end{itemize}
+ 
+{\it Returns:}
+
+\begin{itemize}
+    \item A map with the available backends in the system indexed by their backend IDs.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the session is not initialized, a DataClayException is thrown.
+\end{itemize}
+
+\end{dBox}
+
+
+% ------- init ---------
+
+\begin{dBox}
+\texttt{public static void \CALL{init}() throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Creates and initializes a new session with dataClay.
+\end{itemize}
+
+{\it Environment:}
+
+\begin{itemize}
+    \item \texttt{\bfseries session.properties:} The configuration file can be optionally specified. Location of this file and its contents are detailed in Section~\ref{sec:ClientConfigFiles}.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If any error occurs while initializing the session, a DataClayException is thrown.
+\end{itemize}
+ 
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using global api - distributed people}
+\begin{java}
+import dataclay.api.DataClay;
+import model.Person;
+
+// Open session with init()
+DataClay.init();
+
+List<Person> people = new ArrayList<>();
+people.add(new Person("Alice", 32));
+people.add(new Person("Bob", 41));
+people.add(new Person("Charlie", 35));
+
+// Retrieve backend information with getBackends()
+Map<BackendID, Backend> backends = DataClay.getBackends();
+
+BackendID[] backendArray = backends.keySet().toArray();
+int numBackends = backends.size();
+int i = 0;
+for (Person p : people) {
+  p.dcPut(backendArray[i % numBackends]);
+  i++;
+}
+
+// Close session with finish()
+DataClay.finish();
+\end{java}
+\end{tBox}
+
+
+\section{Object store methods}\index{Object Store}
+\label{sec:JavaObjectStore}
+
+Object store methods are those related to common \textit{GET(CLONE)/PUT/UPDATE} operations as introduced in Sections~\ref{sec:ExecutionModel} and \ref{sec:MyFirstApplication}.
+
+Given that these three operations are very common in class model definition (e.g. get/put operations in collections), we prepend the ``dc'' prefix to prevent an unexpected behavior due to potential overriden operations. Notice that \textit{get} is named as \textit{dcClone} to match OO terminology.
+
+This section focuses on a set of static methods that can be called directly from \textit{DataClayObject} class.
+
+
+
+\subsection{Class methods}
+\label{sec:JavaClassMethodsObjectStore}
+
+The following methods can be called from any downloaded stub as static methods. In this way, the user is allowed to access persistent objects by using their aliases (see Section~\ref{sec:JavaObjectStoreStubMethods} to see how objects are persisted with an alias assigned). Aliases prevent objects to be removed by the Garbage Collector, thus an operation to remove the alias of an object is also provided. More details on how the garbage collector works can be found in Section~\ref{sec:GarbageCollection}. 
+
+Notice that the examples provided assume the initialization and finalization of user's session with methods described in previous section Section~\ref{sec:JavaGlobalAPI}.
+
+% ------- dcCloneByAlias ---------
+
+\begin{dBox}
+\texttt{public static <T> \CALL{dcCloneByAlias} (String alias [, boolean recursive]) \newline throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves a copy of current object from dataClay. Fields referencing to other objects are kept as remote references to objects stored in dataClay, unless the recursive parameter is set to \textit{True}.
+\end{itemize}
+
+{\it Parameters:}
+\begin{itemize}
+    \item \texttt{\bfseries alias:} alias of the object to be retrieved.
+    \item \texttt{\bfseries recursive:} When this is set to True, the default behavior is altered so not only current object but all of its references are also retrieved locally.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item A new object instance initialized with the field values of the object with the alias specified.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If no object with specified alias exists, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dcCloneByAlias method}
+\begin{java}
+Person newPerson = new Person("Alice", 32);
+newPerson.dcPut("student1");
+Person retrieved = Person.dcCloneByAlias("student1");
+assertTrue(retrieved.getName().equals(newPerson.getName())
+\end{java}
+\end{tBox}
+
+
+% ------- dcUpdateByAlias ---------
+
+\begin{dBox}
+\texttt{public static void \CALL{dcUpdateByAlias} (String alias, \newline DataClayObject fromObject) throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Updates the object identified by specified alias with contents of \textit{fromObject}.
+\end{itemize}
+
+{\it Parameters:}
+\begin{itemize}
+    \item \texttt{\bfseries alias:} alias of the object to be retrieved.
+    \item \texttt{\bfseries fromObject:} the base object which contents will be used to update target object with alias specified.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If no object with specified alias exists, a DataClayException is raised.
+    \item If object identified with given alias has different fields than \textit{fromObject}, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dcUpdateByAlias method}
+\begin{java}
+Person newP = new Person("Alice", 32);
+newP.dcPut("student1");
+Person newValues = new Person("Alice Smith", 35);
+Person.dcUpdateByAlias("student1", newValues);
+Person clonedP = Person.cloneByAlias("student1");
+assertTrue(clonedP.getName().equals(newValues.getName()));
+\end{java}
+\end{tBox}
+
+
+\subsection{Object methods}
+\label{sec:JavaObjectStoreStubMethods}
+
+This section expands Section~\ref{sec:JavaClassMethodsObjectStore} with methods that can be called directly from object stub instances. That is, stub classes are adapted to extend a common dataClay class called DataClayObject, which provides the following methods.
+
+
+% ------- dcClone ---------
+
+\begin{dBox}
+\texttt{public <T> \CALL{dcClone} (([boolean recursive]) throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves a copy of current object from dataClay. Fields referencing to other objects are kept as remote references to objects stored in dataClay.
+\end{itemize}
+
+{\it Parameters:}
+\begin{itemize}
+    \item \texttt{\bfseries recursive:} When this is set to True, the default behavior is altered so not only current object but all of its references are also retrieved locally.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item A new object instance initialized with the field values of current object. Non-primitive fields or sub-objects are also copied by creating new objects.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If current object is not persistent, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dcClone method}
+\begin{java}
+Person p = new Person("Alice", 32);
+p.dcPut("student1");
+Person copy = p.dcClone()
+assertTrue(copy.getAge() == p.getAge())
+\end{java}
+\end{tBox}
+
+
+% ------- dcPut ---------
+
+\begin{dBox}
+\texttt{public void \CALL{dcPut} () throws DataClayException}\index{alias}
+
+\texttt{public void \CALL{dcPut} (String alias [, BackendID backendID]) \newline throws DataClayException}\index{alias}
+
+\texttt{public void \CALL{dcPut} (String alias [, boolean recursive]) \newline throws DataClayException}\index{alias}
+
+\texttt{public void \CALL{dcPut} (String alias, BackendID backendID
+\newline [, boolean recursive]) throws DataClayException}\index{alias}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Stores an aliased object in the system and assigns an OID to it. Notice this method allows specifying a certain backend. In this regard, the \colorbox{basecolor!15}{\texttt{\bfseries DataClay.LOCAL}} field can be set as a constant for a specific backendID (as detailed in Section~\ref{sec:ClientConfigFiles}). To use this field from your application, you have to add the proper import: \colorbox{basecolor!15}{\texttt{import dataClay.api.DataClay}}.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries alias:} a string that will identify the object in addition to its OID. Aliases are unique in the system.
+    \item \texttt{\bfseries backendID:} identifies the backend where the object will be stored. If this parameter is missing, then a random backend is selected to store the object. When \texttt{DataClay.LOCAL} is used, the object is created in the backend specified as local in the client configuration file.
+    \item \texttt{\bfseries recursive:} when this flag is True, all objects referenced by the current one will also be made persistent (in case they were not already persistent) in a recursive manner. When this parameter is not set, the default behavior is to perform a recursive makePersistent.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If there is a stored object with the same alias, a DataClayException is raised.
+    \item If a backend is specified and it is not valid, a DataClayException is raised. Use getBackends (\ref{call:JavaGetBackends}) to obtain valid backends.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dcPut method}
+\begin{java}
+Person p = new Person("Alice", 32);
+p.dcPut("student1", DataClay.LOCAL);
+assertTrue(p.getLocation().equals(DataClay.LOCAL));
+\end{java}
+\end{tBox}
+
+
+% ------- dcUpdate ---------
+
+\begin{dBox}
+\texttt{public void \CALL{dcUpdate} (DataClayObject fromObject) throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Updates current object with contents of \textit{fromObject}.
+\end{itemize}
+
+{\it Parameters:}
+\begin{itemize}
+    \item \texttt{\bfseries fromObject:} the base object which contents will be used to update target object with alias specified.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If object to be updated is not persistent, a DataClayException is raised.
+    \item If the object has different fields than \textit{fromObject}, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dcUpdate method}
+\begin{java}
+Person p = new Person("Alice", 32);
+p.dcPut("student1");
+Person newValues = new Person("Alice Smith", 35);
+p.dcUpdate(newValues);
+assertTrue(p.getName().equals(newValues.getName()));
+\end{java}
+\end{tBox}
+
+
+
+\section{Object oriented methods}
+\label{sec:JavaObjectExtendedMethods}
+
+Besides object-store operations, dataClay also offers a set of methods to enable applications work in a more Object-oriented fashion. 
+
+In Object-oriented programming objects are connected by using navigable associations (object references). In dataClay, applications might have objects containing fields associated with other persistent objects through remote object references. Therefore, a set of extended methods are provided to expand object store methods presented in previous section \ref{sec:JavaObjectStore}.
+
+
+\subsection{Class methods}
+\label{sec:JavaClassMethods}
+
+% ------- deleteAlias ---------
+
+\begin{dBox}
+\texttt{public static void \CALL{deleteAlias} (String alias) \newline throws DataClayException}\index{alias}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Removes the alias linked to an object. If this object is not referenced starting from a root object and no active session is accessing it, the garbage collector will remove it from the system.
+\end{itemize}
+
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries alias:} alias to be removed.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If no object with specified alias exists, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using deleteAlias}
+\begin{java}
+Person newPerson = new Person("Alice", 32);
+newPerson.makePersistent("student1");
+...
+Person.deleteAlias("student1");
+\end{java}
+\end{tBox}
+
+
+% ------- getByAlias ---------
+
+\begin{dBox}
+\texttt{public static void <T> \CALL{getByAlias} (String alias) \newline throws DataClayException}\index{alias}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves an object reference of current stub class corresponding to the persistent object with alias provided.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries alias:} alias of the object.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If no object with specified alias exists, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using getByAlias }
+\begin{java}
+Person newPerson = new Person("Alice", 32);
+newPerson.makePersistent("student1");
+Person refPerson = Person.getByAlias("student1");
+assertTrue(newPerson.getName().equals(refPerson.getName())
+\end{java}
+\end{tBox}
+
+
+
+\subsection{Object methods}
+
+In Object-oriented programming, aliases are not required if we can refer to an object by following a navigable association from another object. Therefore, the following method is similar to \textit{dcPut} but offering the possibility to register an object without an alias.
+
+% ------- makePersistent ---------
+
+\begin{dBox}
+\label{sec:JavaObjecMakePersistent}
+\texttt{public void \CALL{makePersistent} () throws DataClayException}\index{alias}
+
+\texttt{public void \CALL{makePersistent} (BackendID backendID) \newline throws DataClayException}\index{alias}
+
+\texttt{public void \CALL{makePersistent} (String alias, [BackendID backendID]) \newline throws DataClayException}\index{alias}
+
+\texttt{public void \CALL{makePersistent} (String alias, [boolean recursive]) \newline throws DataClayException}\index{alias}
+
+\texttt{public void \CALL{makePersistent} (BackendID backendID, [boolean recursive]) \newline  throws DataClayException}\index{alias}
+
+\texttt{public void \CALL{makePersistent} (String alias, BackendID backendID, 
+\newline [boolean recursive]) throws DataClayException}\index{alias}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Stores an object in dataClay and assigns an OID to it.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries alias:} a string that will identify the object in addition to its OID. Aliases are unique in the system. If no alias is set, this object will not have an alias, will only be accessible though other object references.
+    \item \texttt{\bfseries backendID:} identifies the backend where the object will be stored. If this parameter is missing, then a random backend is selected to store the object. When \texttt{DataClay.LOCAL} is used, the object is created in the backend specified as local in the client configuration file.
+    \item \texttt{\bfseries recursive:} when this flag is True, all objects referenced by the current one will also be made persistent (in case they were not already persistent) in a recursive manner. When this parameter is not set, the default behavior is to perform a recursive makePersistent.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If an alias is specified and there is a stored object with the same alias, a DataClayException is raised.
+    \item If a backend is specified and it is not valid, a DataClayException is raised. Use getBackends (\ref{call:JavaGetBackends}) to obtain valid backends.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using makePersistent method}
+\begin{java}
+Person p = new Person("Alice", 32);
+p.makePersistent("student1", DataClay.LOCAL);
+assertTrue(p.getLocation().equals(DataClay.LOCAL));
+\end{java}
+\end{tBox}
+
+
+
+\section{Advanced methods}
+\label{sec:JavaObjectAdvanced}
+
+In this section we present advanced methods that are also inherited from DataClayObject class. These methods are not intended to be used by standard programmers, but by runtime and library developers or expert programmers.
+
+
+% ------- getAllLocations ---------
+
+\begin{dBox}
+\texttt{public Set<BackendID> \CALL{getAllLocations}() throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves all locations where the object is persisted/replicated.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item A set of backend IDs in which this object or its replicas are stored.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the object is not persistent, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using getAllLocations}
+\begin{java}
+Person p1 = Person.getByAlias("personalias");
+Set<BackendID> locations = p1.getAllLocations();
+if (!locations.contains(DataClay.LOCAL)) {
+ p1.newReplica(DataClay.LOCAL);
+}
+\end{java}
+\end{tBox}
+
+
+% ------- getLocation ---------
+
+\begin{dBox}
+\texttt{public BackendID \CALL{getLocation}() throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves a location of the object. % The returned location is one randomly picked from all locations where the object or a replica are stored.
+\end{itemize}
+ 
+{\it Returns:}
+
+\begin{itemize}
+    \item Backend ID in which this object is stored. If the object is not persistent (i.e. it has never been persisted) this function will fail.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the object is not persistent, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using getLocation}
+\begin{java}
+Person p1 = Person.getByAlias("student1");
+p1.makePersistent(DataClay.LOCAL);
+assertTrue(p1.getLocation().equals(DataClay.LOCAL));
+\end{java}
+\end{tBox}
+
+
+% ------- newReplica ---------
+
+\begin{dBox}
+
+\texttt{public BackendID \CALL{newReplica}() throws DataClayException}
+
+\texttt{public BackendID \CALL{newReplica}(boolean recursive) throws DataClayException}
+
+\texttt{public BackendID \CALL{newReplica}(BackendID backendID \newline [,boolean recursive]) throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Creates a replica of the current object.
+    
+    It is very important to realize that dataClay does not take care of replica synchronization. Details on how such synchronization can be achieved are described in Section~\ref{sec:JavaReplication}.
+    \newline
+    \newline
+    Notice that the replication of an object includes the replication of its subobjects (references) as the default behavior (i.e. recursive is True by default). Therefore, some objects (including current object) might be already present in the destination backend. These objects will be ignored from replication, since a backend cannot have two replicas of the same object. But it is ensured that, after a correct execution of this method, a full copy of the current object (and all its subobjects if recursive) is present in the returned backend (same as backendID if user specifies it).
+
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries backendID:} ID of the backend in which to create the replica. If null, a random backend is chosen. When \texttt{DataClay.LOCAL} is used, the object is replicated in the backend specified as local in the client configuration file.
+    \item \texttt{\bfseries recursive:} when this flag is True, all objects referenced by the current one will also be replicated (except those that are already present in the destination backend). When this parameter is not set, the default behavior is to perform a recursive replica.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item The ID of the backend in which the replica was created. 
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the object is not persistent, a DataClayException is raised.
+    \item If a backend is specified and it is not valid, a DataClayException is raised. Use getBackends (\ref{call:JavaGetBackends}) to obtain valid backends.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using newReplica}
+\begin{java}
+Person p1 = Person.getByAlias("student1");
+// replicating object and referenced objects
+// from one of its locations to LOCAL
+p1.newReplica(p1.getLocation(), DataClay.LOCAL);
+\end{java}
+\end{tBox}
+
+
+% ------- runRemote --------
+
+\begin{dBox}
+\texttt{public Object \CALL{runRemote}(BackendID location, \newline String opID, Object[] params) throws DataClayException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Executes a specific method on a particular backend. Notice that currently this method is intended for synchronization purposes, as can be seen in
+  section \ref{sec:JavaReplication}. Check that section for a proper example.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries location:} Backend where the method must be executed. When \texttt{DataClay.LOCAL} is used, the execution request is sent to the backend specified as local in the client configuration file.
+    \item \texttt{\bfseries opID:} ID of the method to be executed.
+    \item \texttt{\bfseries params:} The regular parameters of the method.
+\end{itemize}
+ 
+{\it Returns:}
+
+\begin{itemize}
+    \item The expected result from the execution of the specified method.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If this object is not persistent, a DataClayException is raised.
+    \item If location specified is not valid, a DataClayException is raised. Use getBackends (\ref{call:JavaGetBackends}) to obtain valid backends.
+\end{itemize}
+
+\end{dBox}
+
+\FEDERATION{
+\input{Java/jFederationAPI.tex}
+}
+
+
+
+% ------- moveObject ---------
+
+%\begin{dBox}
+%\texttt{public void \CALL{moveObject}(BackendID sBackendID, BackendID dBackendID \newline [,boolean recursive]) throws DataClayException}
+%\LINE
+%
+%{\it Description:}
+%
+%\begin{itemize}
+%  \item Moves the object (or replica) from a backend identified by sBackendID to another backend identified by dBackendID.
+%\end{itemize}
+%
+%{\it Parameters:}
+%
+%\begin{itemize}
+%  \item \texttt{\bfseries sBackendID:} ID of the source location in which the object is stored.
+%  \item \texttt{\bfseries dBackendID:} ID of the destination location in which the object should be moved. 
+%  \item \texttt{\bfseries recursive:} when this flag is True, all objects referenced by the current one will also be moved. When this parameter is not set, the default behavior is to perform a recursive move.
+%\end{itemize}
+%
+%{\it Exceptions:}
+%
+%\begin{itemize}
+%  \item If the object is not persistent, the object is not located int he source location, or any of the location IDs do not represent a valid location, a DataClayException is raised.
+%\end{itemize}
+% 
+%\end{dBox}
+%
+%\begin{tBox}
+%\textcolor{basecolor} {\bf Example: Using moveObject}
+%\begin{lstlisting}
+%Person p1 = Person.getByAlias("student1");
+%// moving object, but not referenced objects, from one of its locations to LOCAL
+%p1.moveObject(p1.getLocation(), DataClay.LOCAL, false);
+%\end{lstlisting}
+%\end{tBox}
+
+\section {Error management}\index{error management}
+\label{sec:JavaErrorHandling}
+
+Besides \textit{DataClayException} raised from \textit{DataClayObject} methods or dataClay API methods as exposed along this chapter, exceptions raised from methods of your class models while running on a dataClay backend are also forwarded to end-user applications.
+
+However, notice that current version of dataClay does not allow you to register your own exception classes (i.e. as part of your data model), so methods enclosed in your data model can only throw language built-in exceptions.
+
+\section {Memory Management and Garbage Collection}\index{garbage collection}\index{memory management}
+
+In section \ref{sec:GarbageCollection} we introduced the routines that aim to optimize memory and disk usage in the backends.
+
+In Java, users cannot deallocate objects manually so in dataClay we do not provide a direct operation to do so. However, since we add an extra layer for persistence we have to ensure that the Java Garbage Collector (GC) does not remove loaded objects before they are synchronized with the underlying storage. To this end, a dataClay thread periodically checks if the memory usage reaches a certain threshold and, when this is the case, objects are firstly flushed to persistent storage in a way that Java GC can collect them.
+
+On the other hand, a Global Garbage Collector keeps track of global reference counters in a per object basis. Considering the conditions that an object has to meet in order to be removed, as stated in section \ref{sec:GarbageCollection}, its associated reference counter not only counts which objects are pointing to it, but also how many aliases it has or the applications and running methods that are using it.
+
+\section{Replica management}\index{replica management}
+\label{sec:JavaReplication}
+
+Given that each object or piece of data may potentially need a different consistency model, {\bf dataClay will not synchronize objects}. On the other hand, it will offer mechanisms for the model developer to include it as part of the model in an easy way, and how to be able to import the consistency model form another class already defined.
+
+The first way to guarantee the consistency level required by a replicated object is to add the needed code in all setters/getter of the class. Although this is a feasible option is quite impractical if we need to add this code to all classes we want to build. Fir this reason, dataClay also offers a mechanism to add arbitrary code (from a static class) to be executed before or after a given method. This mechanism, explained in detail in this section, will enable programmers to build their consistency model once (or use a predefined one) and use it in any of their classes without modifying the class itself.
+
+In this section, we present how to add consistency code into existing classes.
+
+Let us suppose that we have our class Person:
+
+\begin{tBox}
+\begin{java}
+public class Person {
+  String name;
+  int age;
+  public Person(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+}
+\end{java}
+\end{tBox}
+
+Once this class is registered and with the proper permissions and stubs, an application that uses it might look like this:
+
+\begin{tBox}
+\begin{java}
+public class App {
+  public static void main(String[] args) {
+    DataClay.init();
+    Person p = new Person("Alice", 42);
+    
+    p.makePersistent("student1");
+    p.newReplica();
+    
+    p.setAge(43);
+    System.out.println(p.getAge());
+  }
+}
+\end{java}
+\end{tBox}
+
+With no consistency policies, the printed message would show an unpredictable age for Alice, since methods \textit{setAge} and \textit{getAge} are executed in a random backend among the locations of the object.
+
+In order to overcome this problem, dataClay provides a mechanism to define synchronization policies at user-level. In particular, class developers are allowed to define three different annotations to customize the behavior of attribute updates:
+
+\begin{tBox}
+\begin{java}
+    @DataClayAnnotations.InMaster
+    @DataClayAnnotations.BeforeUpdate(method="...", clazz="...")
+    @DataClayAnnotations.AfterUpdate(method="...", clazz="...")
+\end{java}
+\end{tBox}
+
+The \textit{InMaster} annotation forces the update operation to be handled from the master location. The default master location of an object is the backend where the object was originally stored.
+
+On the other hand, \textit{BeforeUpdate} and \textit{AfterUpdate} define extra behavior to be executed before or after the update operation. The \textit{method} argument specifies an operation signature of a static class method. The \textit{clazz} argument refers to the class where such a static class method is implemented. In this way, the developer is allowed to define an action to be triggered before the update operation, and an action to be taken after the update operation.
+
+Let us resume our previous example. Assuming that the \textit{name} attribute is never modified (e.g. private setter), we want, however, that every time the age is updated the change is propagated to all the replicas. Empowering Person class with the proper annotation, we can intervene updates of attribute \textit{age} to perform the update synchronization:
+
+\begin{tBox}
+\begin{java}
+public class Person {
+  String name;
+
+  @Inmaster
+  @DataClayAnnotations.AfterUpdate(method="replicateToSlaves",
+                                    clazz="model.SequentialConsistency")
+  int age;
+  public Person(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+}
+\end{java}
+\end{tBox}
+
+Following the example, an as part of the class model, the proposed \textit{SequentialConsistency} class could be implemented as follows:
+
+\begin{tBox}
+\begin{java}
+package model;
+
+import java.util.Set;
+
+import api.BackendID;
+import serialization.DataClayObject;
+
+public class SequentialConsistency {
+  public static void replicateToSlaves(DataClayObject o, String setter, Object[] args) {
+    Set<BackendID> locations = o.getAllLocations();
+    for (BackendID replicaLocation : locations) {
+      if (!replicaLocation.equals(o.getMasterLocation())) {
+         o.runRemote(replicaLocation, setter, args);
+      }
+    }
+  }
+}
+\end{java}
+\end{tBox}
+
+In this example, the master replica leads a sequential consistency model by synchronizing the contents with secondary replicas.
+
+Few considerations merit the attention of model developers:
+
+\begin{itemize}
+    \item The master location of an object can be checked with the method \textit{getMasterLocation()}.
+    \item The method name specified in the annotations is always implemented as a \textit{public static void} operation, which receives the context info about the original method that triggered the action. This context info consists of:
+ \begin{itemize}
+    \item A dataClay object reference. Object in which the original method is being executed. In our example, a reference to Person object.
+    \item The method itself. An identifier that dataClay can manage. In our example, the \textit{setAge} method identifier.
+    \item The arguments received by the method. In our example, the new age to be set.
+ \end{itemize}
+\end{itemize}
+
+\section{Further considerations}
+\label{sec:JavaConsiderations}
+
+This section exposes some particularities that are coupled to current dataClay requirements or limitations.
+
+% Current version of dataClay has some unsupported features for Java class models. Most significant ones are listed below.
+% 
+% \begin{enumerate}
+%  \item Non-final static attributes or class attributes. Only final static attributes are supported.
+%  \item User-defined interfaces. Only language predefined interfaces can be implemented.
+%  \item Non-distributed \texttt{synchronized}. You can code a \texttt{synchronized} method or statement, but they will be only effective in a per backend basis. That is, \texttt{synchronize} on a method or object will not behave as a distributed lock.
+%  \item Assertions. Due to its exceptional behavior, currently we are not providing \texttt{assert} support since it will require special flags to execute JVM on dataClay backends.
+%  \item Third-party libraries. You can assume that classes from JDK 1.8 (i.e. \textit{java.util.*}) are available for your data models, but current version of dataClay does not support the registration of external jar files.
+%  \item Handover of lambda functions. Lambdas can only be used in the context of a single execution environment. That is, lambdas cannot be passed in remote execution requests.
+%  \item User-defined exceptions. You can throw Java exceptions from methods of your registered class models, but you cannot define your own Exceptions as part of your class model.
+%  \item Handover of non-serializable Java classes. They can be used within a method (e.g. Iterators), but cannot be passed as argument or returned as result.
+% \end{enumerate}
+
+
+\subsection{Importing registered classes}
+\label{sec:JavaImports}
+
+In order to use certain classes from registered data models you will have to specify the imports for the corresponding stubs. To this end, you have to ensure that Java \textit{classpath} includes the path of your stubs directory when running your applications.
+
+\subsection{Non-registered classes}
+Non-registered mutable types (such as Java built-in collections) are opaque to dataClay. Thus, when a registered class has one of such objects (as a field) and this mutable object is modified from outside its containing class, the changes in the mutable object may not be reflected.
+
+For example, given a Class A with a field b of type B, and B has a field list of type \texttt{ArrayList}. After executing the instruction \texttt{this.b.list.add(x)} from a method in A, the list may not contain the new element x. To solve this, the class model should define a method in class B containing the instruction \texttt{b.list.add(x)} and call it from class A.
+
+\subsection{Third party libraries}
+
+Sometimes using third-party libraries from registered data models is not trivial, thus if you experience such problems, please contact us by email: \texttt{\href{mailto:support-dataclay@bsc.es}{support-dataclay@bsc.es}}
+
+\FEDERATION{
+\input{Java/jFederation.tex}
+}
+
+\FILTERING{
+\input{Java/jFiltering.tex}
+}

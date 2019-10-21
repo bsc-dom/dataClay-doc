@@ -1,0 +1,64 @@
+\chapterimage{Client.jpg} % Chapter heading image
+
+\chapter{Client configuration}
+
+\section{Client libraries}
+\label{sec:ClientLibraries}
+
+In order to connect your applications with dataClay services you need a client library for your preferred programming language.
+
+If you are developing a Java application you can obtain the library following instructions in \ref{sec:FullDemo} (downloading our zip file as exposed in Section~\ref{sec:DownloadZIP} or following instructions for POM-based projects in Section~\ref{sec:POMbasedProjects}).
+
+In case you are developing a Python application, you can easily install the Python module with \textit{pip} command:
+
+\begin{tBox}
+\begin{bash}
+> pip install dataClay
+\end{bash}
+\end{tBox}
+
+\section{Configuration files}
+\label{sec:ClientConfigFiles}
+
+The basic client configuration for an application is the minimum information required to initialize a session with dataClay. To this end two different files are required: the \textit{session.properties}\index{session.properties} file and the \textit{client.properties}\index{client.properties} file.
+
+\subsection{Session properties}
+This file contains the basic info to initialize a session with dataClay. It is automatically loaded during the initialization process (\texttt{DataClay.init()}\index{DataClay.init()} in Java or \texttt{api.init()}\index{api.init()} in Python) and its default path is \texttt{./cfgfiles/session.properties}. This path can be overridden by setting a different path through the environment variable \texttt{DATACLAYSESSIONCONFIG}. 
+
+Here is an example:
+
+\begin{tBox}
+ \begin{bash}
+  Account=MyAccount
+  Password=MyPassword
+  StubsClasspath=/home/me/myapp/stubs
+  DataSetForStore=MyDataset
+  DataSets=MyDataset,OtherDataSet
+  LocalBackend=DS1
+ % DataClayClientConfig=/home/me/myapp/client.properties
+ \end{bash}
+\end{tBox}
+
+\texttt{Account} and \texttt{Password} properties are used to specify user's credentials. 
+
+\texttt{StubsClasspath} defines a path where the stub classes can be located. That is, the path where \textit{dClayTool} (exposed in section \ref{sec:dClayTool}) saved our stub classes after calling \texttt{GetStubs} operation.
+
+\texttt{DataSetForStore} specifies which dataset the application will use in case a \textit{makePersistent} request is produced to store a new object in the system, and \texttt{DataSets} provide information about the datasets the application will access (normally it includes the \texttt{DataSetForStore}). 
+
+\texttt{LocalBackend} defines the default backend that the application will access when using either \texttt{DataClay.LOCAL} in Java or \texttt{api.LOCAL} in Python (examples of this can be found in API sections \ref{sec:JavaAPI} and \ref{sec:PythonAPI}). 
+
+%Finally, the \texttt{DataClayClientConfig} contains a path pointing to \textit{client.properties} file, which is the second file required as exposed in next section.
+
+\subsection{Client properties}
+This file contains the minimum service info to connect applications with dataClay. It is also loaded automatically during the initialization process and its default path is \texttt{./cfgfiles/client.properties}, which can be overriden by setting the environment variable \texttt{DATACLAYCLIENTCONFIG}.
+
+Here is an example:
+
+\begin{tBox}
+ \begin{bash}
+ HOST=localhost
+ TCPPORT=11034
+ \end{bash}
+\end{tBox}
+
+As you can see, it only requires two properties to be defined: \texttt{HOST} and \texttt{TCPPORT}; comprising the full address to be resolved in order to initialize a session with dataClay from your application.

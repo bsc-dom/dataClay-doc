@@ -1,0 +1,402 @@
+\chapterimage{FirstSteps.jpg} % Chapter heading image
+
+\chapter{My first dataClay application}
+\label{sec:MyFirstApplication}
+
+In order to better understand what dataClay is and how it is used, we present a very simple example (HelloPeople) where data is stored using dataClay. Sections~\ref{sec:JavaFirstApp} and~\ref{sec:PythonFirstApp} present this example both in Java and Python respectively and from two different perspectives. On the one hand, an Object Store approach with GET(CLONE)/PUT/UPDATE methods based on aliased objects, following Java API defined in Section~\ref{sec:JavaObjectStore} and Python API in Section~\ref{sec:PythonObjectStore}). On the other hand, an Object Oriented approach with a reduced usage of aliasing and powered by references to persistent objects, with methods defined in Section~\ref{sec:JavaObjectExtendedMethods} and Section~\ref{sec:PythonObjectExtendedMethods}.
+
+At a later stage, in Chapter~\ref{sec:FullDemo}, we will guide you through the entire process of downloading, installing and executing this application.
+
+\section{HelloPeople: a first dataClay example}\index{HelloPeople}
+\label{sec:HelloPeople}
+
+HelloPeople is a simple application that registers a list of people info into a persistent collection identified by an alias. Every time this application is executed, it first tries to load the collection by its alias, and if it does not exist the application creates it. Once the collection has been retrieved, or created, the given new person info is added to the collection and the whole set of people is displayed.
+
+HelloPeople receives the following parameters:
+
+\begin{itemize}
+    \item - a string that identifies the name of the collection.
+    \item - a string with the name of the person to be inserted into the collection.
+    \item - an integer with the age of the person to be inserted into the collection.
+\end{itemize}
+
+\subsection{Java}
+\label{sec:JavaFirstApp}
+
+The following code snippets show the class model and two Java HelloPeople applications (Object Store and Object Oriented). The class model is the same for both applications, having a Person class that defines the info to be stored for each registered person: name and age; and the People class that maintains a list of references to Person objects.
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{Person.java - Person class}}
+\begin{java}
+package model;
+
+public class Person {
+    String name;
+    int age;
+  
+    public Person(String newName, int newAge) {
+        name = newName;
+        age = newAge;
+    }
+  
+    public String getName() {
+        return name;
+    }
+  
+    public int getAge() {
+        return age;
+    }
+}
+\end{java}
+\end{tBox}
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{People.java - People class}}
+\begin{java}
+package model;
+
+import java.util.ArrayList;
+
+public class People {
+    private ArrayList<Person> people;
+
+    public People() {
+        people = new ArrayList<>();
+    }
+
+    public void add(final Person newPerson) {
+        people.add(newPerson);
+    }
+
+    public String toString() {
+        StringBuilder result = new StringBuilder("People: \n");
+        for (Person p : people) {
+            result.append(" - Name: " + p.getName());
+            result.append(" Age: " + p.getAge() + "\n");
+        }
+        return result.toString();
+    }
+}
+\end{java}
+\end{tBox}
+
+
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{HelloPeopleOS.java - Object Store Hello People}}
+\begin{java}
+package app;
+
+import dataclay.api.DataClay;
+import model.People;
+import model.Person;
+
+public class HelloPeopleOS {
+    private static void usage() {
+        System.out.println("Usage: application.HelloPeople <peopleAlias> <personName> <personAge>");
+        System.exit(1);
+    }
+
+    public static void main(final String[] args) {
+        try {
+            // Check and parse arguments
+            if (args.length != 3) {
+                    usage();
+            }
+            final String peopleAlias = args[0];
+            final String pName = args[1];
+            final int pAge = Integer.parseInt(args[2]);
+
+            // Init dataClay session
+            DataClay.init();
+
+            // Retrieve (or create) People collection 
+            People people = null;
+            try {
+                people = (People) People.dcCloneByAlias(peopleAlias);
+                System.out.println("[LOG] Found People object with alias: " + peopleAlias);
+            } catch (final Exception ex) {
+                people = new People();
+                System.out.println("[LOG] Created a NEW People object!");
+            }
+
+            // Check people contents (people iterated locally)
+            System.out.println("[LOG] Current people");
+            System.out.println(people);
+
+            // Create a person and add it to the collection
+            final Person person = new Person(pName, pAge);
+            people.add(person);
+
+            // Check people contents (people iterated locally)
+            System.out.println("[LOG] Current people at client-side");
+            System.out.println(people);
+
+            try {
+                // Update if object already exists
+                People.dcUpdateByAlias(peopleAlias, people);
+                System.out.println("[LOG] Updated existing people object");
+            } catch (final Exception ex) {
+                // Store it if does not exist
+                people.dcPut(peopleAlias);
+                System.out.println("[LOG] Stored people object");
+            }
+
+            // Retrieve stored people again to check changes
+            people = (People) People.dcCloneByAlias(peopleAlias);
+            System.out.println("[LOG] Current people at server-side after update");
+            System.out.println(people);
+
+            // Finish dataClay session
+            DataClay.finish();
+
+            // Exit
+            System.exit(0);
+        } catch (final Exception e) {
+            System.exit(1);
+        }
+    }
+}
+
+\end{java}
+\end{tBox}
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{HelloPeopleOO.java - Object Oriented HelloPeople}}
+\begin{java}
+package app;
+
+import dataclay.api.DataClay;
+import model.People;
+import model.Person;
+
+public class HelloPeopleOO {
+    private static void usage() {
+        System.out.println("Usage: application.HelloPeople <peopleAlias> <personName> <personAge>");
+        System.exit(1);
+    }   
+
+    public static void main(final String[] args) {
+        try {
+            // Check and parse arguments
+            if (args.length != 3) {
+                usage();
+            }   
+            final String peopleAlias = args[0];
+            final String pName = args[1];
+            final int pAge = Integer.parseInt(args[2]);
+
+            // Init dataClay session
+            DataClay.init();
+
+            // Access (or create) People collection
+            People people;
+            try {
+                people = People.getByAlias(peopleAlias);
+                System.out.println("[LOG] Found People object with alias " + peopleAlias);
+            } catch (final Exception ex) {
+                people = new People();
+                people.makePersistent(peopleAlias);
+                System.out.println("[LOG] Created a new People object with alias " + peopleAlias);
+            }   
+
+            // Add new person to people (person object is persisted in the system)
+            final Person person = new Person(pName, pAge);
+            people.add(person);
+            System.out.println("[LOG] Added a new person, current people:");
+            // People is iterated remotely
+            System.out.println(people);
+
+            // Finish dataClay session
+            DataClay.finish();
+
+            // Exit
+            System.exit(0);
+        } catch (final Exception e) {
+            System.exit(1);
+        }   
+    }   
+}
+\end{java}
+\end{tBox}
+
+
+\subsection{Python}
+\label{sec:PythonFirstApp}
+
+The following code snippets show the Python HelloPeople applications (Object Store and Object Oriented) and the class model. Analogously to Java model, \textit{person.py} specifies the info to be registered for each person: name and age; and \textit{people.py} maintains a list of references to person objects.
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{person.py - Person class}}
+\begin{python}
+from dataclay import DataClayObject, dclayMethod
+
+class Person(DataClayObject):
+    """
+    @ClassField name str
+    @ClassField age int
+    """
+    @dclayMethod(name='str', age='int')
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+\end{python}
+\end{tBox}
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{people.py - People class}}
+\begin{python}
+from dataclay import DataClayObject, dclayMethod
+
+class People(DataClayObject):
+    """
+    @ClassField people list<model.classes.Person>
+    """
+    @dclayMethod()
+    def __init__(self):
+        self.people = list()
+
+    @dclayMethod(new_person="model.classes.Person")
+    def add(self, new_person):
+        self.people.append(new_person)
+
+    @dclayMethod(return_="str")
+    def __str__(self):
+        result = ["People:"]
+
+        for p in self.people:
+            result.append(" - Name: %s " % p.name)
+            result.append(" - Age: %d " % p.age)
+
+        return "\n".join(result)
+\end{python}
+\end{tBox}
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{hellopeople\_os.py - Object Store HelloPeople}}
+\begin{python}
+import sys
+
+from dataclay.api import init, finish
+
+# Init dataClay session
+init()
+
+from HelloPeople_ns.classes import Person, People
+
+class Attributes(object):
+    pass
+
+
+def usage():
+    print("Usage: hellopeople.py <colname> <personName> <personAge>")
+
+
+def init_attributes(attributes):
+    if len(sys.argv) != 4:
+        print("ERROR: Missing parameters")
+        usage()
+        exit(2)
+    attributes.collection = sys.argv[1]
+    attributes.p_name = sys.argv[2]
+    attributes.p_age = int(sys.argv[3])
+
+
+if __name__ == "__main__":
+    attributes = Attributes()
+    init_attributes(attributes)
+
+    # Retrieve (or create) people collection
+    try:
+        people = People.dc_clone_by_alias(attributes.collection)
+        print("\n [LOG] Found existing people object with alias " + attributes.collection)
+    except Exception:
+        people = People()
+        print("\n [LOG] Created a new People object!")
+
+    # Check people contents (iterated locally)
+    print("\n [LOG] Current people:")
+    print(people)
+
+    # Add a new person to people
+    person = Person(attributes.p_name, attributes.p_age)
+    people.add(person)
+    print("\n [LOG] Current people at client-side")
+    print(people)
+
+    try:
+        # Update persistent people object if it exists (notice that this is a class method)
+        People.dc_update_by_alias(attributes.collection, people)
+        print("\n [LOG] Updated existing people object")
+    except:
+        # Put the new object if it does not exist (notice that this is an object method)
+        people.dc_put(attributes.collection)
+        print("\n [LOG] Stored people object")
+
+    # Retrieve from store to check contents
+    people = People.dc_clone_by_alias(attributes.collection)
+    print("\n [LOG] Current people at server-side:")
+    print(people)
+
+    # Close session
+    finish()
+    exit(0)
+\end{python}
+\end{tBox}
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{hellopeople\_oo.py - Object Oriented Hello People}}
+\begin{python}
+import sys
+
+from dataclay.api import init, finish
+
+# Init dataClay session
+init()
+
+from HelloPeople_ns.classes import Person, People
+
+class Attributes(object):
+    pass
+
+
+def usage():
+    print("Usage: hellopeople.py <colname> <personName> <personAge>")
+
+
+def init_attributes(attributes):
+    if len(sys.argv) != 4:
+        print("ERROR: Missing parameters")
+        usage()
+        exit(2)
+    attributes.collection = sys.argv[1]
+    attributes.p_name = sys.argv[2]
+    attributes.p_age = int(sys.argv[3])
+
+
+if __name__ == "__main__":
+    attributes = Attributes()
+    init_attributes(attributes)
+
+    # Retrieve (or create) people object
+    try:
+        # Trying to retrieve it using alias
+        people = People.get_by_alias(attributes.collection)
+        print("\n [LOG] Retrieved people's object with alias " + attributes.collection)
+    except Exception:
+        people = People()
+        people.make_persistent(alias=attributes.collection)
+        print("\n [LOG] Persisted people's object with alias " + attributes.collection)
+
+    # Add new person to people (person object is persisted in the system)
+    person = Person(attributes.p_name, attributes.p_age)
+    people.add(person)
+    print("\n [LOG] Added a new person, current people:")
+    # Check final people contents (iterates remotely)
+    print(people)
+
+    # Close session
+    finish()
+    exit(0)
+\end{python}
+\end{tBox}

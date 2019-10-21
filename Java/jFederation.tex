@@ -1,0 +1,74 @@
+\section{Object federation}\index{federation}
+\label{sec:jFederation}
+
+\TODO{This is replicated in \ref{sec:pFederation}}
+
+Although the normal behavior of applications is to use the data in a single dataClay instance (that may have many back ends), there are scenarios where it is desirable/needed for a given piece of data stored in a dataClay instance to be also seen from another dataClay instance (for instance from a completely difference data center, with no relation whatsoever). An example can be seen in IoT, where some parts of the data residing in a dataClay instance located in a car are integrated temporarily with the dataClay database of the city the car is traversing. This temporal integration of a piece of data into another dataClay instance as if it belonged there is what we call data federation.
+
+In this section, we present how to manage federation of objects that instantiate Java classes. 
+
+It is assumed a scenario with several dataClays running at the same time. The process 
+of discovery to make a dataClay to be aware of other dataClays can be achieved by using dClayTool as 
+exposed in section \ref{sec:dClayToolFederation}.
+
+Notice that a current requirement for federating an object is that the class model of the object is registered in the involved 
+dataClays within the same Namespace.
+
+Let us suppose that we have our class Person:
+
+\begin{tBox}
+\begin{lstlisting}
+public class Person {
+  String name;
+  int age;
+  public Person(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+}
+\end{lstlisting}
+\end{tBox}
+
+Once this class is registered in both dataClays in the same Namespace, and with the proper permissions and stubs, 
+an application that uses it might look like this:
+
+\begin{tBox}
+\begin{lstlisting}
+public class App {
+  public static void main(String[] args) {
+    DataClay.init();
+    
+    Person p = new Person("Alice", 42);
+    p.makePersistent("person1");
+    
+    p.federate("dataClay2");
+  }
+}
+\end{lstlisting}
+\end{tBox}
+
+At this point, an application in a secondary dataClay named \textit{dataClay2} can execute the following code:
+
+\begin{tBox}
+\begin{lstlisting}
+public class App {
+  public static void main(String[] args) {
+    DataClay.init();
+    
+    Person p = Person.getByAlias("person1");
+    
+    System.out.println(p.name);
+  }
+}
+\end{lstlisting}
+\end{tBox}
+
+The secondary dataClay has actually performed a replica of Person object aliased \textit{person1}. From now on, this 
+replica can be used in the execution environment of any of the backends of the secondary dataClay.
+
+The synchronization of the replicas stored in different dataClays can be achieved in analogous way as the synchronization 
+of replicas stored among different backends of a single dataClay. To this particular end, it is possible to retrieve the info
+all of dataClay instances where the object is federated with the \textit{getFederation} call (analogous to \textit{getAllLocations}, 
+and the consistency policy can use the \textit{runFederated} method (analogous to \textit{runRemote}) to execute setters on remote dataClays.
+The description of both \textit{runFederated} and \textit{getFederation} can be found in section \ref{sec:JavaObjectAdvanced}.
+

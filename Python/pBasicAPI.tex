@@ -1,0 +1,892 @@
+\chapterimage{Python.jpg} % Chapter heading image
+
+\chapter{Python API}
+\label{sec:PythonAPI}
+
+This chapter presents the Python API that can be used by applications divided into the following sections. First, in Section~\ref{sec:PythonGlobalAPI} we present the API intended to initialize and finish applications, as well as, to gather information about the system. In Section~\ref{sec:PythonObjectStore} we show the API for Object Store operations (GET(CLONE)/PUT/UPDATE). Next, in Section~\ref{sec:PythonObjectExtendedMethods} we introduce extended methods to expand object store operations from an Object-oriented programming perspective. In Section~\ref{sec:PythonObjectAdvanced} we show advanced extensions that will only be needed by a subset of applications. Finally, we present extra concepts such as error handling in Section~\ref{sec:PythonErrorHandling}, replica management in Section~\ref{sec:PythonReplication} and further considerations in Section~\ref{sec:PythonConsiderations}.
+
+Notice that current supported Python versions are 2 and 3, but all the backends in the system, as well as the clients, should use the same Python major version (Section~\ref{sec:SystemInstall} describes further details about this).
+
+\section{Global API}
+\label{sec:PythonGlobalAPI}
+
+In this section, we present a set of calls that are not linked to any given object, but are general to the system.
+
+In Python, they can be called through \textit{dataclay.api} with the proper import:
+
+\colorbox{basecolor!15}{\texttt{from dataclay.api import finish, init, get\_backends}}
+
+
+% ------- finish ---------
+
+\begin{dBox}
+\texttt{def \CALL{finish}():}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Finishes a session with dataClay that has been previously created using init.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the session is not initialized or an error occurs while finishing the session, a DataClayException is thrown.
+\end{itemize}
+ 
+\end{dBox}
+
+
+% ------- getBackends ---------
+
+\begin{dBox}
+\label{call:PythonGetBackends}
+\texttt{def \CALL{get\_backends}(): }
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves the available backends in the system.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item A map with the available backends in the system indexed by their IDs.
+\end{itemize}
+
+\begin{itemize}
+    \item If the session is not initialized, a DataClayException is thrown.
+\end{itemize}
+
+\end{dBox}
+
+
+% ------- init ---------
+
+\begin{dBox}
+\texttt{def \CALL{init}(config\_file='./cfgfiles/session.properties'):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Creates and initializes a new session with dataClay.
+\end{itemize}
+
+{\it Environment:}
+
+\begin{itemize}
+    \item \texttt{\bfseries session.properties:} The configuration file can be optionally specified. Location of this file and its contents are detailed in Section~\ref{sec:ClientConfigFiles}.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If any error occurs while initializing the session, a DataClayException is thrown.
+\end{itemize}
+ 
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using global api - distributed people}
+\begin{python}
+from itertools import cycle
+from dataclay.api import finish, init, get_backends
+
+# Open session with init()
+init()
+
+from model import Person
+
+student1 = Person(name="Alice", age=32)
+person2 = Person(name="Bob", age=41)
+person2 = Person(name="Charlie", age=35)
+people = [p1, p2, p3]
+
+# Retrieve backend information with get_backends()
+backends = get_backends().keys()
+
+# Round robin of persons in backends
+for person, backend in zip(people, cycle(backends)):
+    person.dc_put(backend_id=backend)
+
+# Close session with finish()
+finish()
+\end{python}
+\end{tBox}
+
+
+\section{Object store methods}\index{Object Store}
+\label{sec:PythonObjectStore}
+
+Object store methods are those related to common \textit{GET(CLONE)/PUT/UPDATE} operations as introduced in Sections~\ref{sec:ExecutionModel} and \ref{sec:MyFirstApplication}.
+
+Given that these three operations are very common in class model definition (e.g. get/put operations in collections), we prepend the ``dc'' prefix to prevent an unexpected behavior due to potential overriden operations. Notice that \textit{get} is named as \textit{dc\_clone} to match OO terminology.
+
+This section focuses on a set of static methods that can be called directly from \textit{DataClayObject} class.
+
+
+
+\subsection{Class methods}
+\label{sec:PythonClassMethodsObjectStore}
+
+The following methods can be called from any downloaded stub as class methods. In this way, the user is allowed to access persistent objects by using their aliases (see Section~\ref{sec:PythonObjectStoreStubMethods} to see how objects are persisted with an alias assigned). Aliases prevent objects to be removed by the Garbage Collector, thus an operation to remove the alias of an object is also provided. More details on how the garbage collector works can be found in Section~\ref{sec:GarbageCollection}. 
+
+Notice that the examples provided assume the initialization and finalization of user's session with methods described in previous section Section~\ref{sec:PythonGlobalAPI}.
+
+% ------- dc_clone_by_alias ---------
+
+\begin{dBox}
+\texttt{def \CALL{dc\_clone\_by\_alias} (cls, alias, recursive=False):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves a copy of current object from dataClay. Fields referencing to other objects are kept as remote references to objects stored in dataClay, unless the recursive parameter is set to \textit{True}.
+\end{itemize}
+
+{\it Parameters:}
+\begin{itemize}
+    \item \texttt{\bfseries alias:} alias of the object to be retrieved.
+    \item \texttt{\bfseries recursive:} When this is set to True, the default behavior is altered so not only current object but all of its references are also retrieved locally.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item A new object instance initialized with the field values of the object with the alias specified.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If no object with specified alias exists, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dc\_clone\_by\_alias method}
+\begin{java}
+new_person = Person(name="Alice", age=32)
+new_person.dc_put("student1")
+retrieved = Person.dc_clone_by_alias("student1")
+assert retrieved.get_name() == new_person.get_name()
+\end{java}
+\end{tBox}
+
+
+% ------- dc_update_by_alias ---------
+
+\begin{dBox}
+\texttt{def \CALL{dc\_update\_by\_alias} (cls, alias, from\_object):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Updates the object identified by specified alias with contents of \textit{from\_object}.
+\end{itemize}
+
+{\it Parameters:}
+\begin{itemize}
+    \item \texttt{\bfseries alias:} alias of the object to be retrieved.
+    \item \texttt{\bfseries from\_object:} the base object which contents will be used to update target object with alias specified.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If no object with specified alias exists, a DataClayException is raised.
+    \item If object identified with given alias has different fields than \textit{from\_object}, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dc\_update\_by\_alias method}
+\begin{java}
+new_person = new Person(name="Alice", age=32)
+new_person.dc_put("student1")
+new_values = Person(name="Alice Smith", age=35)
+Person.dc_update_by_alias("student1", new_values)
+cloned_person = Person.dc_clone_by_alias("student1")
+assert cloned_person.get_name() == new_values.get_name()
+\end{java}
+\end{tBox}
+
+
+
+\subsection{Object methods}
+\label{sec:PythonObjectStoreStubMethods}
+
+This section expands Section~\ref{sec:PythonClassMethodsObjectStore} with methods that can be called directly from object instances. That is, stub classes are adapted to extend a common dataClay class called DataClayObject, which provides the following methods.
+
+
+% ------- dc_clone ---------
+
+\begin{dBox}
+\texttt{def \CALL{dc\_clone} (recursive=False)}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves a copy of current object from dataClay. Fields referencing to other objects are kept as remote references to objects stored in dataClay.
+\end{itemize}
+
+{\it Parameters:}
+\begin{itemize}
+    \item \texttt{\bfseries recursive:} When this is set to True, the default behavior is altered so not only current object but all of its references are also retrieved locally.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item A new object instance initialized with the field values of current object. Non-primitive fields or sub-objects are also copied by creating new objects.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If current object is not persistent, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dc\_clone method}
+\begin{java}
+new_person = Person(name="Alice", age=32)
+new_person.dc_put("student1")
+copy = new_person.dc_clone()
+assert copy.get_age() == new_person.get_age()
+\end{java}
+\end{tBox}
+
+
+% ------- dc_put ---------
+
+\begin{dBox}
+\texttt{def \CALL{dc\_put} (self, alias, backend\_id=None, recursive=True):}\index{alias}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Stores an aliased object in the system and assigns an OID to it. Notice that next method allows specifying a certain backend. In this regard, the \colorbox{basecolor!15}{\texttt{\bfseries api.LOCAL}} field can be set as a constant for a specific backendID (as detailed in Section~\ref{sec:ClientConfigFiles}). To use this field from your application, you have to add the proper import: \colorbox{basecolor!15}{\texttt{from dataclay import api}}.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries alias:} a string that will identify the object in addition to its OID. Aliases are unique in the system.
+    \item \texttt{\bfseries backendID:} identifies the backend where the object will be stored. If this parameter is missing, then a random backend is selected to store the object. When \texttt{api.LOCAL} is used, the object is created in the backend specified as local in the client configuration file.
+    \item \texttt{\bfseries recursive:} when this flag is True, all objects referenced by the current one will also be made persistent (in case they were not already persistent) in a recursive manner. When this parameter is not set, the default behavior is to perform a recursive makePersistent.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If there is a stored object with the same alias, a DataClayException is raised.
+    \item If a backend is specified and it is not valid, a DataClayException is raised. Use get\_backends (\ref{call:PythonGetBackends}) to obtain valid backends.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dc\_put method}
+\begin{java}
+new_person = Person(name="Alice", age=32)
+new_person.dc_put("student1", api.LOCAL)
+locations = list(p1.get_all_locations())
+assert api.LOCAL in locations
+\end{java}
+\end{tBox}
+
+
+% ------- dc_update ---------
+
+\begin{dBox}
+\texttt{def \CALL{dc\_update} (self, from\_object)}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Updates current object with contents of \textit{from\_object}.
+\end{itemize}
+
+{\it Parameters:}
+\begin{itemize}
+    \item \texttt{\bfseries from\_object:} the base object which contents will be used to update target object with alias specified.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If object to be updated is not persistent, a DataClayException is raised.
+    \item If the object has different fields than \textit{from\_object}, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using dc\_update method}
+\begin{java}
+new_person = Person(name="Alice", age=32)
+new_person.dc_put("student1")
+new_values = Person(name="Alice Smith", age=35)
+new_person.dc_update(new_values)
+assert new_person.get_name() == new_values.get_name()
+\end{java}
+\end{tBox}
+
+
+
+\section{Object oriented methods}
+\label{sec:PythonObjectExtendedMethods}
+
+Besides object store operations, dataClay also offers a set of methods to enable applications work in a more Object-oriented fashion. 
+
+In Object-oriented programming objects are connected by using navigable associations (object references). In dataClay, applications might have objects containing fields associated with other persistent objects through remote object references. Therefore, a set of extended methods are provided to expand object store methods presented in previous section \ref{sec:PythonObjectStore}.
+
+
+\subsection{Class methods}
+\label{sec:PythonClassMethods}
+
+% ------- delete_alias ---------
+
+\begin{dBox}
+\texttt{def \CALL{delete\_alias}(cls, alias):}\index{alias}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Removes the alias linked to an object. If this object is not referenced starting from a root object and no active session is accessing it, the garbage collector will remove it from the system.
+\end{itemize}
+
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries alias:} alias to be removed.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If no object with specified alias exists, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using delete\_alias}
+\begin{python}
+new_person = Person(name="Alice", age=32)
+new_person.make_persistent("student1")
+...
+Person.delete_alias("student1")
+\end{python}
+\end{tBox}
+
+
+% ------- get_by_alias ---------
+
+\begin{dBox}
+\texttt{def \CALL{get\_by\_alias}(cls, alias):}\index{alias}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves an object reference of current stub class corresponding to the persistent object with alias provided.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries alias:} alias of the object.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If no object with specified alias exists, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using get\_by\_alias }
+\begin{python}
+new_person = Person(name="Alice", age=32)
+new_person.make_persistent("student1")
+ref_person = Person.get_by_alias("student1")
+assert new_person.get_name() == ref_person.get_name()
+\end{python}
+\end{tBox}
+
+
+
+\subsection{Object methods}
+
+In Object-oriented programming, aliases are not required if we can refer to an object by following a navigable association from another object. Therefore, the following method is similar to \textit{dc\_put} but offering the possibility to register an object without an alias.
+
+% ------- make_persistent ---------
+
+\begin{dBox}
+\label{sec:PythonObjectMakePersistent}
+\texttt{def \CALL{make\_persistent}(self, alias=None, backend\_id=None, recursive=True):}\index{alias}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Stores an object in dataClay and assigns an OID to it.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries alias:} a string that will identify the object in addition to its OID. Aliases are unique in the system. If no alias is set, this object will not have an alias, will only be accessible though other object references.
+    \item \texttt{\bfseries backend\_id:} identifies the backend where the object will be stored. If this parameter is missing, then a random backend is selected to store the object. When \texttt{api.LOCAL} is used, the object is created in the backend specified as local in the client configuration file.
+    \item \texttt{\bfseries recursive:} when this flag is True, all objects referenced by the current one will also be made persistent (in case they were not already persistent) in a recursive manner. When this parameter is not set, the default behavior is to perform a recursive makePersistent.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If an alias is specified and there is a stored object with the same alias, a DataClayException is raised.
+    \item If a backend is specified and it is not valid, a DataClayException is raised. Use get\_backends (\ref{call:PythonGetBackends}) to obtain valid backends.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using make\_persistent}
+\begin{python}
+p1 = Person(name="Alice", age=32)
+p1.make_persistent("student1", api.LOCAL)
+assert p1.get_location() == api.LOCAL
+\end{python}
+\end{tBox}
+
+
+
+\section{Advanced methods}
+\label{sec:PythonObjectAdvanced}
+
+In this section we present advanced methods that are also inherited from DataClayObject class. These methods are not intended to be used by standard programmers, but by runtime and library developers or expert programmers.
+
+
+% ------- get_all_locations ---------
+
+\begin{dBox}
+\texttt{def \CALL{get\_all\_locations}(self):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves all locations where the object is persisted/replicated.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item A set of backend IDs in which this object or its replicas are stored.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the object is not persistent, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using get\_all\_locations}
+\begin{python}
+new_person = Person(name="Alice", age=32)
+new_person.make_persistent("student1", api.LOCAL)
+locations = list(p1.get_all_locations())
+assert api.LOCAL in locations
+\end{python}
+\end{tBox}
+
+
+% ------- getLocation ---------
+
+\begin{dBox}
+\texttt{def \CALL{get\_location}(self):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves a location of the object. % The returned location is one randomly picked from all locations where the object or a replica are stored.
+\end{itemize}
+ 
+{\it Returns:}
+
+\begin{itemize}
+    \item Backend ID in which this object is stored. If the object is not persistent (i.e. it has never been persisted) this function will fail.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the object is not persistent, a DataClayException is raised.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using get\_location}
+\begin{python}
+new_person = Person(name="Alice", age=32)
+new_person.make_persistent("student1", api.LOCAL)
+assert new_person.get_location() == api.LOCAL
+\end{python}
+\end{tBox}
+
+
+% ------- newReplica ---------
+
+\begin{dBox}
+\texttt{def \CALL{new\_replica}(self, backend\_id=None, recursive=True):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Creates a replica of the current object.
+    
+    It is very important to realize that dataClay does not take care of replica synchronization. Details on how such synchronization can be achieved are described in Section~\ref{sec:PythonReplication}.
+    \newline
+    \newline
+    Notice that the replication of an object includes the replication of its subobjects (references) as the default behavior (i.e. recursive is True by default). Therefore, some objects (including current object) might be already present in the destination backend. These objects will be ignored from replication, since a backend cannot have two replicas of the same object. But it is ensured that, after a correct execution of this method, a full copy of the current object (and all its subobjects if recursive) is present in the returned backend (same as backend\_ID if user specifies it).
+
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries backend\_id:} ID of the backend in which to create the replica. If null, a random backend is chosen. When \texttt{api.LOCAL} is used, the object is replicated in the backend specified as local in the client configuration file.
+    \item \texttt{\bfseries recursive:} when this flag is True, all objects referenced by the current one will also be replicated (except those that are already present in the destination backend). When this parameter is not set, the default behavior is to perform a recursive replica.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+    \item The ID of the backend in which the replica was created. 
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If the object is not persistent, a DataClayException is raised.
+    \item If a backend is specified and it is not valid, a DataClayException is raised. Use get\_backends (\ref{call:PythonGetBackends}) to obtain valid backends.
+\end{itemize}
+
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using new\_replica}
+\begin{python}
+p1 = Person.get_by_alias("student1")
+# replicating object and referenced objects
+# from one of its locations to LOCAL
+p1.new_replica(api.LOCAL)
+\end{python}
+\end{tBox}
+
+
+% ------- runRemote --------
+
+\begin{dBox}
+\texttt{def \CALL{run\_remote}(backend\_id, operation\_name, params)}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Executes a specific method on a particular backend. Notice that currently this method is intended for synchronization purposes, as can be seen in
+  section \ref{sec:PythonReplication}. Check that section for a proper example.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries backend\_id,:} Backend where the method must be executed. When \texttt{api.LOCAL} is used, the execution request is sent to the backend specified as local in the client configuration file.
+    \item \texttt{\bfseries operation\_name:} Method to be executed.
+    \item \texttt{\bfseries params:} The regular parameters of the method.
+\end{itemize}
+ 
+{\it Returns:}
+
+\begin{itemize}
+    \item The expected result from the execution of the specified method.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+    \item If this object is not persistent, a DataClayException is raised.
+    \item If location specified is not valid, a DataClayException is raised. Use get\_backends (\ref{call:PythonGetBackends}) to obtain valid backends.
+\end{itemize}
+
+\end{dBox}
+
+\FEDERATION{
+\input{Python/pFederationAPI.tex}
+}
+
+
+
+% ------- moveObject ---------
+
+%\begin{dBox}
+%\texttt{def \CALL{move\_object}(self, source\_backend\_id, dest\_backend\_id, recursive):}
+%\LINE
+%
+%\TODO{NOT IMPLEMENTED}
+%
+%{\it Description:}
+%
+%\begin{itemize}
+%    \item Moves the object (or replica) from a backend identified by source\_backend\_id to another backend identified by  dest\_backend\_id.
+%\end{itemize}
+%
+%{\it Parameters:}
+%
+%\begin{itemize}
+%    \item \texttt{\bfseries source\_backend\_id:} ID of the source backend in which the object is stored.
+%    \item \texttt{\bfseries dest\_backend\_id:} ID of the destination backend in which the object should be moved. 
+%    \item \texttt{\bfseries recursive:} when this flag is True, all objects referenced by the current one will also be moved. When this parameter is not set, the default behavior is to perform a recursive move.
+%\end{itemize}
+%
+%{\it Exceptions:}
+%
+%\begin{itemize}
+%    \item If the object is not persistent, the object is not located int he source location, or any of the location IDs do not represent a valid location, a DataClayException is raised.
+%\end{itemize}
+% 
+%\end{dBox}
+%
+%\begin{tBox}
+%\textcolor{basecolor} {\bf Example: Using move\_object}
+%\begin{python}
+%p1 = get_by_alias(Person, "student1")
+%# moving object, but not referenced objects, from one of its locations to LOCAL
+%p1.move_object(p1.get_location(), api.LOCAL, false)
+%assert api.LOCAL in p1.get_all_locations()
+%\end{python}
+%\end{tBox}
+
+\section {Error management}\index{error management}
+\label{sec:PythonErrorHandling}
+
+Besides \textit{DataClayException} raised from \textit{DataClayObject} methods or dataClay API methods as exposed along this chapter, exceptions raised from methods of your class models while running on a dataClay backend are also forwarded to end-user applications.
+
+However, notice that current version of dataClay does not allow you to register your own exception classes (i.e. as part of your data model), so methods enclosed in your data model can only throw language built-in exceptions.
+
+\section {Memory Management and Garbage Collection}\index{garbage collection}\index{memory management}
+
+In section \ref{sec:GarbageCollection} we introduced the routines that aim to optimize memory and disk usage in the backends.
+
+In Python, users cannot deallocate objects manually so dataClay does not provide a direct operation to do that. However, since we add an extra layer for persistence we have to ensure that Python does not remove objects before they are synchronized with the underlying storage. To this end, a dataClay thread periodically checks if the memory usage reaches a certain threshold and, when this is the case, objects are firstly flushed to persistent storage in a way that the Python GC can collect them.
+
+On the other hand, a Global Garbage Collector keeps track of global reference counters in a per object basis. Considering the conditions that an object has to meet in order to be removed, as stated in section \ref{sec:GarbageCollection}, its associated reference counter not only counts which objects are pointing to it, but also how many aliases it has or the applications and running methods that are using it.
+
+\section{Replica management}\index{replica management}
+\label{sec:PythonReplication}
+
+Given that each object or piece of data may potentially need a different consistency model, {\bf dataClay will not synchronize objects}. On the other hand, it will offer mechanisms for the model developer to include it as part of the model in an easy way, and how to be able to import the consistency model form another class already defined.
+
+The first way to guarantee the consistency level required by a replicated object is to add the needed code in all setters/getter of the class. Although this is a feasible option is quite impractical if we need to add this code to all classes we want to build. Fir this reason, dataClay also offers a mechanism to add arbitrary code ( fom a static class) to be executed before or after a given method. This mechanism, explained in detail in this section, will enable programmers to build their consistency model once (or use a predefined one) and use it in any of their classes without modifying the class itself.
+
+In this section, we present how to add consistency code into existing classes.
+
+Let us suppose that we have our class Person:
+
+\begin{tBox}
+\begin{python}
+class Person(DataClayObject):
+    @dclayMethod(name="str", age="int")
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+\end{python}
+\end{tBox}
+
+Once this class is registered and with the proper permissions and stubs, an application that uses it might look like this:
+
+\begin{tBox}
+\begin{python}
+# Initialize dataClay
+from dataclay.api import init, finish, get_backends
+init()
+
+from model.classes import *
+
+if __name__ == "__main__":
+    p = Person("foo", 100)
+    backends = get_backends().keys()
+    
+    p.make_persistent(backend_id=backends[0])
+    p.new_replica(backend_id=backends[1])    
+    
+    p.age = 1000
+    print(p.age)    
+    finish()
+\end{python}
+\end{tBox}
+
+With no consistency policies, the printed message would show an unpredictable age for Alice, since getters and setters are executed in a random backend among the locations of the object.
+
+In order to overcome this problem, dataClay provides a mechanism to define synchronization policies at user-level. In particular, class developers are allowed to define three different annotations to customize the behavior of attribute updates:
+
+\begin{tBox}
+\begin{python}
+@dclayReplication(inMaster='boolean')
+@dclayReplication(beforeUpdate='method')
+@dclayReplication(afterUpdate='method')
+@ClassField name type
+\end{python}
+\end{tBox}
+
+The \textit{inMaster} annotation forces the update operation to be handled from the master location if set to true. The default master location of an object is the backend where the object was originally stored.
+
+On the other hand, \textit{beforeUpdate} and \textit{afterUpdate} define extra behavior to be executed before or after the update operation. The \textit{method} argument specifies an operation signature of the class of current class. In this way, the developer is allowed to define an action to be triggered before the update operation, and an action to be taken after the update operation.
+
+The \textit{ClassField} annotation allows the user to define which fields of the class have to apply the defined behavior.
+
+Let us resume our previous example. Assuming that the \textit{name} attribute is never modified (e.g. private setter), we want, however, that every time the \textit{age} is updated the change is propagated to all the replicas. Empowering Person class with the proper annotations, we can intervene updates of attribute \textit{age} to perform the update synchronization:
+
+\begin{tBox}
+\begin{python}
+class Person(DataClayObject):
+    """ 
+    @dclayReplication(afterUpdate='replicateToSlaves', inMaster='True')
+    @ClassField age int
+    """
+
+    @dclayMethod(name="str", age="int")
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    @dclayMethod(attribute="str", value="anything")
+    def replicateToSlaves(self, attribute, value):
+        from dataclay.DataClayObjProperties import DCLAY_SETTER_PREFIX
+        for exeenv_id in self.get_all_locations():
+            if exeenv_id != master_location:
+                self.run_remote(exeenv_id, DCLAY_SETTER_PREFIX + attribute, value)
+\end{python}
+\end{tBox}
+
+Notice that the class has now implemented the behavior to synchronize replicas through the method \textit{replicateToSlaves}. That is, in this example, the master replica leads a sequential consistency model by synchronizing the contents with secondary replicas.
+
+Few considerations merit the attention of model developers:
+
+\begin{itemize}
+    \item The master location can be checked through the field \textit{master\_location}.
+    \item The method whose name is specified in the annotations is implemented in the model class and receives the attribute name to be set and its new value.
+\end{itemize}
+
+\section{Further considerations}
+\label{sec:PythonConsiderations}
+
+This section exposes some particularities that are coupled to current dataClay requirements or limitations.
+
+\subsection{Type annotation}
+
+Python uses dynamic typing and does not provide the concept of symbol table, therefore dataClay asks the model provider to explicitly specify the types for class registration.
+
+To this end, fields, methods (argument and return types) and imports must be annotated, as you can notice in the examples of previous section \ref{sec:PythonReplication} about replica management. 
+
+In particular, fields and imports are defined as part of the \textit{docstring} of the class, whereas methods are annotated using \textit{decorators}. 
+
+In the case of imports, two tags are provided to define imports as shown in the examples below:
+
+\begin{tBox}
+ \begin{python}
+  @dataClayImport numpy as np
+  @dataClayImportFrom itertools import cycle
+ \end{python}
+\end{tBox}
+
+In the case of fields and methods, they are annotated with tags \texttt{@ClassField} and \texttt{@dclayMethod} as shown, for instance, in People class from HelloPeople application:
+
+\begin{tBox}
+ \begin{python}
+  class People(DataClayObject):
+    """
+    @ClassField people list<HelloPeople_ns.classes.Person>
+    """
+    @dclayMethod()
+    def __init__(self):
+        self.people = list()
+
+    @dclayMethod(new_person="HelloPeople_ns.classes.Person")
+    def add(self, new_person):
+        self.people.append(new_person)
+
+    @dclayMethod(return_="str")
+    def __str__(self):
+        result = ["People:"]
+
+        for p in self.people:
+            result.append(" - Name: %s, age: %d" % (p.name, p.age))
+
+        return "\n".join(result)
+ \end{python}
+\end{tBox}
+
+Notice that in case that a class requires types (classes) from your data models (registered or pending to register), you must provide a valid namespace as a prefix for your annotations. If the defined type belongs to a namespace that is pending to register (maybe because you are currently defining it) then you must ensure that the prefix used is the same as the namespace you will provide during the class model registration process.
+
+In the example above, \textit{people} field is specified as a list of {\bf \texttt{HelloPeople\_ns.classes.Person}} objects being {\bf \texttt{HelloPeople\_ns}} the namespace to be used for the HelloPeople class model.
+
+% Current version of dataClay has some unsupported features for Python class models. Most significant ones are listed below.
+% 
+% \TODO{Connected to TODO in error management section, it is said that DataClayException encapsulates any builtin exception to be passed, but Alex is not sure}
+% 
+% \begin{enumerate}
+%  \item Class attributes and class methods. Attributes and methods can only be accessed at object level, you cannot execute a method or access an attribute from class context.
+%  \item Generators and \texttt{yield} statement are not supported.
+%  \item Handover of lambda functions. Lambdas can only be used in the context of a single execution environment. That is, lambdas cannot be passed in remote execution requests.
+%  \item User-defined decorators. You cannot define your own decorators in Python methods.
+%  \item Inheritance. Method overloading or multiple inheritance are not supported. You cannot call \texttt{super} method either.
+%  \item Third-party libraries (except \texttt{numpy}). You can assume that classes from Python 2 are available for your data models, but current version of dataClay does not support the registration of external libraries. The only exception is for \texttt{numpy} which is registered by default in dataClay backends, enabling you to use it from your class models.
+%  \item Arbitrary parameters \texttt{*args} and \texttt{**kwargs}.
+%  \item Raising exceptions. You can handle exceptions within your methods with try except blocks, but they cannot be raised.
+% \end{enumerate}
+
+\subsection{Non-registered classes}
+Non-registered mutable types (such as Python dictionaries or numpy arrays) are opaque to dataClay. Thus, when a registered class has one of such objects (as a field) and this mutable object is modified from outside its containing class, the changes in the mutable object may or may not be reflected.
+
+For example, given a Class A with a field b of type B, and B has a list field. After executing the instruction \texttt{self.b.list.add(x)} from a method in A, the list may or may not contain the new element x. To solve this, the class model should define a method in class B containing the instruction \texttt{b.list.add(x)} and call it from class A.
+
+\subsection{Third party libraries}
+
+Sometimes using third-party libraries from registered data models is not trivial, thus if you experience such problems, please contact us by email: \texttt{\href{mailto:support-dataclay@bsc.es}{support-dataclay@bsc.es}}
+
+\subsection{Execution environment}
+\label{sec:PythonConsiderationsExecutionEnvironment}
+
+Multithreading is supported both at the client side and at the server side. However, due to the CPython Global Interpreter Lock implementation details, only one thread can execute Python code at once (even though certain performance-oriented libraries might overcome this limitation). If you have Python-pure CPU-intensive parallel workloads which are being executed in methods of dataClay persisted objects, then you may experience serialization of executions (and thus, loss of performance).
+
+In Section~\ref{sec:PythonParallelism} we explain how to face this problem, but if you still have some doubts or further requirements for your applications, please contact us (\texttt{\href{mailto:support-dataclay@bsc.es}{support-dataclay@bsc.es}}) and we will provide you the proper solutions.
+
+\FEDERATION{
+\input{Python/pFederation.tex}
+}

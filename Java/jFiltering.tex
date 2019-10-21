@@ -1,0 +1,91 @@
+\section{Collection filtering}\index{filtering}
+\label{sec:JavaFiltering}
+
+\TODO{Check it makes sense}
+\TODO{Python filtering}
+\TODO{Check Grammar is correct}
+\TODO{Maybe we could decide a unique method for filtering, currently we have two or more for non-AST queries}
+
+A user class implementing the \textit{Iterable} interface can benefit from filtering methods provided by DataClay objects (i.e. from the corresponding stubs).
+
+The method to filter an iterable object, i.e. a collection, only requires a query in String format compliant with the following grammar:
+
+\begin{lstlisting}
+ Filter  ::= ( AndExpr )or( Filter )*
+ 
+ AndExpr ::= ( Comp )and( AndExpr )*
+ 
+ Comp    ::= Attribute Op Value
+         | Value Op Attribute
+         | Filter
+ 
+ Op      ::= '<' | '<=' | '=' | '>=' | '>' | '!=' | ':=' | '^='
+ 
+ Attribute ::= ? attribute name possibly nested ?
+ 
+ Value ::=IntValue | DateValue | StringValue | BoolValue
+
+ IntValue ::= /[0-9]+/ | -/[0-9]+/
+ DateValue ::= ? in Java standard String format ?
+ StringValue ::= "..." | '...'
+ BoolValue ::= 'true' | 'false'
+\end{lstlisting}
+
+The following example illustrates a basic class model representing an iterable collection of Person objects (following HelloPeople example in section \ref{sec:HelloPeople}) to filter them afterwards.
+
+\begin{tBox}
+\texttt{\bfseries\textcolor{basecolor}{HelloPeople.java}}
+\begin{lstlisting}[language=Java]
+package model;
+import model.Person;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+
+public class PersonList implements Iterable<Person> {
+    public List<Person> people;
+
+    public People() {
+      people = new ArrayList<>();
+    }
+    
+    @Override
+    public Iterator<Person> iterator() {
+      return people.iterator();
+    }
+}
+
+\end{lstlisting}
+\end{tBox}
+
+This basic class could be filled with Person objects and once registered and obtained the corresponding stub, you will be enabled to execute the following method.
+
+\begin{dBox}
+\texttt{public List<Object> \CALL{filterStream}(final String conditions)}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item If 'this' object is iterable (i.e. its class implements Iterable interface), the query is applied by iterating through the object and checking the provided conditions. Objects found matching these conditions are returned in a List.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries conditions:} The query conditions matching the previously presented grammar.
+\end{itemize}
+ 
+{\it Returns:}
+
+\begin{itemize}
+  \item The list of objects that match the conditions specified within the query.
+\end{itemize}
+
+{\it Exceptions:}
+
+\begin{itemize}
+  \item If this object is not Iterable.
+\end{itemize}
+
+\end{dBox}

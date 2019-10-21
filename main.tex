@@ -1,0 +1,227 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The Legrand Orange Book
+% LaTeX Template
+% Version 2.3 (8/8/17)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Mathias Legrand (legrand.mathias@gmail.com) with modifications by:
+% Vel (vel@latextemplates.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+% Compiling this template:
+% This template uses biber for its bibliography and makeindex for its index.
+% When you first open the template, compile it from the command line with the 
+% commands below to make sure your LaTeX distribution is configured correctly:
+%
+% 1) pdflatex main
+% 2) makeindex main.idx -s StyleInd.ist
+% 3) biber main
+% 4) pdflatex main x 2
+%
+% After this, when you wish to update the bibliography/index use the appropriate
+% command above and make sure to compile with pdflatex several times 
+% afterwards to propagate your changes to the document.
+%
+% This template also uses a number of packages which may need to be
+% updated to the newest versions for the template to compile. It is strongly
+% recommended you update your LaTeX distribution if you have any
+% compilation errors.
+%
+% Important note:
+% Chapter heading images should have a 2:1 width:height ratio,
+% e.g. 920px width and 460px height.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[11pt,fleqn]{book} % Default font size and left-justified equations
+
+%----------------------------------------------------------------------------------------
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\input{structure} % Insert the structure.tex file which contains the majority of the structure behind the template
+
+\newcounter{todos}
+\setcounter{todos}{0}
+\newcommand{\TODO}[1]
+{
+\begin{eBox}\addtocounter{todos}{1}\textcolor{red}{\bf TODO [\arabic{todos}] -- }\textcolor{red}{#1}\end{eBox}
+}
+
+\newcounter{codetodos}
+\setcounter{codetodos}{0}
+\newcommand{\CODETODO}[1]
+{
+\begin{eBox}\addtocounter{codetodos}{1}\textcolor{green}{\bf CHANGE CODE [\arabic{codetodos}] -- }\textcolor{green}{#1}\end{eBox}
+}
+
+\newcounter{discusstodos}
+\setcounter{discusstodos}{0}
+\newcommand{\DISCUSS}[1]
+{
+\begin{eBox}\addtocounter{discusstodos}{1}\textcolor{blue}{\bf DISCUSS [\arabic{discusstodos}] -- }\textcolor{blue}{#1}\end{eBox}
+}
+
+\newcounter{checktodos}
+\setcounter{checktodos}{0}
+\newcommand{\CHECK}[1]
+{
+\begin{eBox}\addtocounter{checktodos}{1}\textcolor{orange}{\bf CHECK [\arabic{checktodos}] -- }\textcolor{orange}{#1}\end{eBox}
+}
+
+\newcommand{\CALL}[1]
+{
+{\bfseries\textcolor{basecolor}{#1}}\index{#1}
+}
+
+\newcommand{\LINE}{
+\newline\rule{\textwidth}{0.4pt}
+}
+
+\newcommand{\FEDERATION}[1]
+{
+%#1
+}
+
+\newcommand{\FILTERING}[1]
+{
+%#1
+}
+
+\begin{document}
+
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\begingroup
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+%\node[inner sep=0pt] (background) at (current page.center) {\includegraphics[width=\paperwidth]{background.jpg}};
+\node[inner sep=0pt] (background) at (current page.north) {\includegraphics[width=\paperwidth]{background.jpg}};
+\node[inner sep=0pt] (background) at (current page.south) {\includegraphics[width=\paperwidth]{background.jpg}};
+
+\definecolor{mygray}{rgb}{0.40,0.40,0.40}
+
+\draw (current page.center) node [fill=white,fill opacity=0.6,text opacity=1,inner sep=1cm]{\Huge\centering\bfseries\sffamily\parbox[c][][t]{\paperwidth}{\centering\color{mygray}  Manual\\[8pt] % Book title
+%{\Large Manual}\\[20pt] % Subtitle
+
+\centering\includegraphics[width=8cm]{dClaylogo.jpg}
+
+{\Large version 1.0}\\[10pt] % version
+{\huge Barcelona Supercomputing Center}\\[8pt] % Author name
+{\Large support-dataclay@bsc.es}}}; % Author email
+\end{tikzpicture}
+\vfill
+\endgroup
+
+%----------------------------------------------------------------------------------------
+%	RELEASE NOTES
+%----------------------------------------------------------------------------------------
+
+\cleardoublepage % Forces the first chapter to start on an odd page so it's on the right
+
+\input{ReleaseNotes/Relnotes.tex}
+
+%----------------------------------------------------------------------------------------
+%	TABLE OF CONTENTS
+%----------------------------------------------------------------------------------------
+
+%\usechapterimagefalse % If you don't want to include a chapter image, use this to toggle images off - it can be enabled later with \usechapterimagetrue
+
+\chapterimage{TOC.jpg} % Table of contents heading image
+
+\pagestyle{empty} % No headers
+
+\tableofcontents % Print the table of contents itself
+
+\cleardoublepage % Forces the first chapter to start on an odd page so it's on the right
+
+\pagestyle{fancy} % Print headers again
+\rhead{\begin{picture}(0,0) \put(-60,0){\includegraphics[width=2cm]{dClaylogo.jpg}}\end{picture}}
+
+\renewcommand\labelitemi{}
+\setlength{\parindent}{0pt}
+
+
+%----------------------------------------------------------------------------------------
+%	PART
+%----------------------------------------------------------------------------------------
+
+\part{Getting started}
+  \input{FirstSteps/Concepts.tex}
+  \input{FirstSteps/FirstApp.tex}
+  \input{FirstSteps/AppCycle.tex}
+
+\part{Java: Programmer API}
+  \input{Java/jBasicAPI.tex}
+%  \input{Java/jManagementAPI.tex}
+%  \input{Java/jStorageAPI.tex}%
+%  \input{Java/jUndocumented.tex}
+
+\part{Python: Programmer API}
+  \input{Python/pBasicAPI.tex}
+%  \input{Python/pfManagementAPI.tex}
+%  \input{Python/pStorageAPI.tex}
+%  \input{Python/pUndocumented.tex}
+
+\part{dClayTool: dataClay management tool}
+  \input{Tool/dClayTool.tex}
+
+%\part{Collections}
+%  \input{Collections/CollectionsIntro.tex}
+%  \input{Collections/jCollections.tex}
+%  \input{Collections/pCollections.tex}
+
+\part{Installation}
+\label{part:installation}
+  \input{Installation/System.tex}
+  \input{Installation/Client.tex}
+  \input{Installation/FullTest.tex}
+
+\part{Bibliography and index}
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+\chapterimage{TOC.jpg}
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{\textcolor{basecolor}{Bibliography}}
+
+%------------------------------------------------
+
+%\section*{Articles}
+%\addcontentsline{toc}{section}{Articles}
+%\printbibliography[heading=bibempty,type=article]
+
+%------------------------------------------------
+
+%\section*{Books and Ph.D. Thesis}
+%\addcontentsline{toc}{section}{Books}
+\printbibliography[heading=bibempty]
+
+%----------------------------------------------------------------------------------------
+%	INDEX
+%----------------------------------------------------------------------------------------
+
+\cleardoublepage
+\phantomsection
+\setlength{\columnsep}{0.75cm}
+\addcontentsline{toc}{chapter}{\textcolor{basecolor}{Index}}
+\printindex
+
+%----------------------------------------------------------------------------------------
+
+\end{document}

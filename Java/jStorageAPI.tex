@@ -1,0 +1,58 @@
+\chapterimage{Coffee.jpg} % Chapter heading image
+
+\chapter{Project specific API}
+
+\TODO{brief intro to this chapter}
+
+\section{COMPSs specific API}
+
+In this section we present extensions to the dataClay API needed to improve the integration with the COMPSs programming model~\cite{Tejedor_2008}\cite{Tejedor_2015}, also developed at BSC.
+
+
+\TODO{Add calls such as new version, consolidate, ...}
+
+% ------- getID ---------
+
+\begin{dBox}
+\texttt{public java.lang.String \CALL{getID}() throws StorageException}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+	\item Retrieves the object ID of the current object in string format. This specific format is needed to be used in other API calls such as ...
+\end{itemize}
+
+\TODO{Add the list of call that can use this format}
+ 
+{\it Returns:}
+
+\begin{itemize}
+	\item Returns an OID (in string format) that identified the caller object. If the object is not persistent (i.e. it has never been persisted) this function will fail.
+\end{itemize}
+
+\TODO{What does it mean it fails? How does the programmer know, a return value, an exception, ...}
+\end{dBox}
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using getID}
+\begin{verbatim}
+
+Code
+
+\end{verbatim}
+\end{tBox}
+
+\TODO{getBackendsByHostname}
+
+\TODO{Fill the getID example}
+
+\TODO{getByID}
+
+\TODO{newReplica}
+
+\TODO{ids2String}
+
+\TODO{string2IDs}
+
+

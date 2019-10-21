@@ -1,0 +1,87 @@
+\chapterimage{FirstSteps.jpg} % Chapter heading image
+
+\chapter{Main Concepts}
+
+\section{What is dataClay}
+
+dataClay~\cite{MARTI2017129,MartiFraiz2017} is a distributed object store that enables programmers to handle object persistence using the same model they use in their object-oriented applications, thus avoiding time consuming transformation between persistent and non persistent models. In other words, dataClay enables applications to store objects in the same format they have in memory. This can be done either using the standard \textit{GET/PUT/UPDATE} methods of standard object stores, or by just calling the \textit{makePersistent} method on an object that will enable applications to access it, in the same way, regardless of whether it is loaded in memory or persisted in disk (you just follow the object reference).
+
+In addition, dataClay simplifies and optimizes the idea of moving computation close to data (see Section~\ref{sec:ExecutionModel}) by enabling the execution of methods in the same node where a given object is located. dataClay also optimizes the idea of sharing data and models (set of classes) between different users by means of storing the class (including method definition) together with the object.
+
+\section{Basic terminology}
+
+In this section we present a brief terminology that is used throughout the manual. 
+
+\begin{itemize}
+
+\item {\bf Object}\index{object}, as in object oriented programming, refers to a particular instance of a class.
+
+\item {\bf dataClay application}\index{dataClay application} is any application that uses dataClay to handle its persistent data. 
+
+\item {\bf Backend}\index{backend} is a node in the system that is able to handle persistent objects and execution requests. These nodes need to be running the dataClay platform on them. We can have as many as we need either for capacity or parallelism reasons.
+
+\item {\bf Clients}\index{client} are the machines where dataClay applications run. These nodes can be very thin. They only need to be able to run Java or Python code and to have the dataClay lib installed.
+
+\item {\bf dataClay object}\index{dataClay object}\index{object} is any object stored in dataClay.
+
+\item {\bf Objects with alias}\index{alias} are objects that have been explicitly named (much in the same way we give names to files). Not all dataClay objects need to have an alias (a name). If an object has an alias, we can access it by using its name. On the other hand, objects without an alias can only be accessed by a reference from another object. 
+
+\item {\bf Dataset}\index{dataset} is an abstraction where many objects are grouped. It is indented to simplify the task of sharing objects with other users.
+
+\item {\bf Data model}\index{data model} or \textbf{class model} consists of a set of related classes programmed in one of the supported languages: Java 1.8, Python 2 or Python 3.
+
+\item {\bf Namespace}\index{namespace}  is a dataClay abstraction aimed at grouping a set of classes together. Namespaces have two objectives: i) grouping related classes to ease the task of sharing them with other users and ii) avoiding clashing of class names. A namespace is similar to a Java/Python package.
+
+\end{itemize}
+
+\section{Execution model}
+\label{sec:ExecutionModel}\index{execution model}
+
+As we have mentioned, one of the key features of dataClay is to offer a mechanism to bring computation closer to data. For this reason, all methods of a dataClay object will not be executed in the client (application address space) but on the backend where dataClay stored the object. Thus, searching for an object in a collection will not imply sending all objects in the collection to the client, but only the final result because the search method will be executed in the backend. If the collection is distributed among different backends, any sub-method required to check whether objects match certain conditions or not, will be executed on the involved backends.
+
+It is important to notice that this execution model does not prevent developers to use the standard object store model by using \textit{GET/PUT/UPDATE} methods. In particular, a \textit{GET} method (as \textit{CLONE} in dataClay to match with object oriented terminology), will bring the object to the application address space and thus all methods will be executed locally. At this point, any application object either retrieved (\textit{CLONED}) from dataClay or created by the application itself, can be either \textit{PUT} into the system to save it or can be used to \textit{UPDATE} an existing stored object.
+
+\section{Tasks and roles}\index{roles}
+
+In order to rationalize the different roles that take part in data-centric applications, such as the ones supported by dataClay, we assume two different roles.
+
+\begin{itemize}
+
+\item {\bf Model providers}\index{model provider} design and implement class models to define the elements of data (data structure), their relationships, and methods (API) that applications can use to access and process it.
+
+\item {\bf Application developers}\index{application developer} use classes developed by the model provider in order to build applications. These applications can either create and store new objects or access data previously created.
+
+\end{itemize}
+
+Although dataClay encourages these roles in the cycle of applications, they do not have to be declared as such and, of course, they can be assumed by a single person.
+
+\section{Memory Management and Garbage Collection}
+\label{sec:GarbageCollection}\index{garbage collection}\index{memory management}
+
+Every backend in dataClay maintains a daemon process that checks if memory usage has reached a certain threshold and, if this is the case, it flushes those objects that are not referenced into the underlying storage.
+
+On the other hand, dataClay also performs background garbage collection to remove those objects that are no longer accessible. More specifically, dataClay deploys a distributed garbage collection service, involving all the backends, to periodically collect any object meeting the following conditions:
+\begin{enumerate}
+  \item The object is not pointed by any other object.
+  \item The object has no aliases.
+  \item There is no user application referencing the object.
+  \item There is no backend accessing the object from a running execution method.
+\end{enumerate}
+
+\section{Data Prefetching}
+\label{sec:prefetching}\index{prefetching}
+As a performance improvement mechanism, the user can choose to activate data prefetching in dataClay. When prefetching is activated, dataClay prefetches the data from the persistent storage of each backend into its main memory. There are two different types of prefetching:
+\begin{enumerate}
+    \item the default 'smart' prefetching based on code analysis of the applications.
+    \item a lightweight alternative that prefetches objects referenced from a specific object when it is accessed.
+\end{enumerate}
+Choosing the desired type of prefetching can be done while registering a new model using dataClay tool, as explained in Section \ref{sec:newModel}. Note that once a model is registered with one type of prefetching, it cannot be changed later to use the other type.
+
+The prefetching module is still experimental and in order for it to function properly, the client application must meet the following conditions:
+
+\begin{enumerate}
+    \item The application must be written in Java. Data prefetching is currently not available for Python applications.
+    \item The application must contain one class definition per file.
+    \item All collections defined in the application must be typed. If a collection is not typed, it will be ignored by the prefetching module.
+    \item The application must not contain constructs specific to Java 1.8, such as lambda expressions or collection streams.
+\end{enumerate}

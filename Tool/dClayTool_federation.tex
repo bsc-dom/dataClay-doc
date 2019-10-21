@@ -1,0 +1,57 @@
+\section{Federation}
+\label{sec:dClayToolFederation}
+
+In this section we present different commands to support object federation introduced in sections \ref{sec:jFederation} and \ref{sec:pFederation}.
+Basically \textit{dClayTool.sh} offers three operations to retrieve dataClay instances IDs (local or external) and to register an external dataClay instance in the system in order to support object federation with it.
+
+These operations are also provided through the main dataClay programmer API, introduced in sections \ref{sec:JavaGlobalAPI} and \ref{sec:PythonGlobalAPI}.
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{GetDataClayID}}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+	\item Retrieves the ID of the current dataClay.
+\end{itemize}
+
+\end{dBox}
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{GetExtDataClayID} dc\_host dc\_port}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+	\item Retrieves the ID of an external dataClay.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+	\item \texttt{\bfseries dc\_host}: hostname of the external dataClay
+	\item \texttt{\bfseries dc\_port}: port of the external dataClay
+\end{itemize}
+
+\end{dBox}
+
+\begin{dBox}
+\texttt{dClayTool.sh \CALL{RegisterDataClay} dc\_host dc\_port}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+	\item Registers an external dataClay which Logic Module is located in the provided hostname and listening on the specified port.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+	\item \texttt{\bfseries dc\_host}: hostname of the external dataClay
+	\item \texttt{\bfseries dc\_port}: port of the external dataClay
+\end{itemize}
+
+\end{dBox}
