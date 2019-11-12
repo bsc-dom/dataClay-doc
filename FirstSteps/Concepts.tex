@@ -68,6 +68,7 @@ On the other hand, dataClay also performs background garbage collection to remov
   \item There is no backend accessing the object from a running execution method.
 \end{enumerate}
 
+\PREFETCH{
 \section{Data Prefetching}
 \label{sec:prefetching}\index{prefetching}
 As a performance improvement mechanism, the user can choose to activate data prefetching in dataClay. When prefetching is activated, dataClay prefetches the data from the persistent storage of each backend into its main memory. There are two different types of prefetching:
@@ -85,3 +86,11 @@ The prefetching module is still experimental and in order for it to function pro
     \item All collections defined in the application must be typed. If a collection is not typed, it will be ignored by the prefetching module.
     \item The application must not contain constructs specific to Java 1.8, such as lambda expressions or collection streams.
 \end{enumerate}
+}
+
+\section{Federation}
+\label{sec:federation}\index{federation}
+In some scenarios, such as IoT deployments, part of the data stored in a dataClay instance has to be shared with another dataClay instance running in a different device. An example can be found in the context of smart cities where, for instance, part of the data residing in a car is temporarily shared with the city the car is traversing. This partial, and possibly temporal, integration of data between independent dataClay instances is implemented by means of dataClay's federation mechanism.
+More precisely, federation consists in replicating an object (either simple or complex, such as a collection of objects) in an independent dataClay instance so that the recipient dataClay can access the object without the need to contact the owner dataClay. This provides immediate access to the object, avoiding communications when the object is requested and overcoming the possible unavailability of the data source. 
+
+

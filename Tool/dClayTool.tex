@@ -38,7 +38,9 @@ In this section we present the options offered by the dataClay tool in order to 
 % ------- New Model ---------
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{NewModel} \newline user\_name user\_pass namespace\_name class\_path language \newline [-{}-prefetch on src\_path lib\_path | rop fetch\_depth src\_path lib\_path]}
+\texttt{dClayTool.sh \CALL{NewModel} \newline user\_name user\_pass namespace\_name class\_path language 
+\PREFETCH{
+\newline [-{}-prefetch on src\_path lib\_path | rop fetch\_depth src\_path lib\_path]}}
 \LINE
 
 {\it Description:}
@@ -51,8 +53,9 @@ In this section we present the options offered by the dataClay tool in order to 
     One of the supported languages must be chosen to specify which classes of the class path provided will be registered as part of the model.
     
     Notice that, in order to register classes using stubs of other namespaces or just previous registered classes, the corresponding stubs must be contained in the folder so dataClay will be able to annotate the association between classes (e.g. between an already registered and the new one).
-    
-    Also includes optional parameters to activate data prefetching. Note that these should only be used with a dataClay instance where prefetching is already activated, as discussed in Section \ref{sec:prefetchingTuning}.
+   
+\PREFETCH{
+    Also includes optional parameters to activate data prefetching. Note that these should only be used with a dataClay instance where prefetching is already activated, as discussed in Section \ref{sec:prefetchingTuning}.}
 \end{itemize}
 
 {\it Parameters:}
@@ -65,6 +68,7 @@ In this section we present the options offered by the dataClay tool in order to 
     \item \texttt{\bfseries language}: one of the supported languages (currently, \textit{python} or \textit{java}).
 \end{itemize}
 
+\PREFETCH{
 {\it Optional Parameters:}
 
 \begin{itemize}
@@ -75,7 +79,7 @@ In this section we present the options offered by the dataClay tool in order to 
     \item \texttt{\bfseries rop}: activates the referenced-objects prefetching.
     \item \texttt{\bfseries fetch\_depth}: number of levels of referenced objects that will be prefetched.
 \end{itemize}
- 
+ }
 \end{dBox}
 
 % ------- Get Stubs ---------

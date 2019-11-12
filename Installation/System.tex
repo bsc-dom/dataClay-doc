@@ -546,6 +546,7 @@ GLOBALGC_CHECK_TIME_INTERVAL=1000000
  \end{bash}
 \end{tBox}
 
+\PREFETCH{
 \subsubsection{Data Prefetching}\index{prefetching}
 \label{sec:prefetchingTuning}
 As explained in Section \ref{sec:prefetching}, the user can activate data prefetching in dataClay in order to improve the application performance. In order to do so, the following property should be set to true in the \textit{global.properties} file of both the logic module and data services when dataClay is installed.
@@ -564,3 +565,4 @@ As explained in Section \ref{sec:prefetching}, the user can activate data prefet
 \end{table}
 
 Keep in mind that prefetching should also be activated when registering an application using dataClay tool, as explained in Section \ref{sec:newModel}.
+}
