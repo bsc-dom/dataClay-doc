@@ -1,23 +1,23 @@
-\section{Object federation}\index{federation}
+\section{dataClay in edge-to-cloud environments}\index{federation}
 \label{sec:jFederation}
 
 \TODO{This is replicated in \ref{sec:pFederation}}
 
-In some scenarios, such as IoT deployments, part of the data stored in a dataClay instance has to be shared with another dataClay instance running in a different device. An example can be found in the context of smart cities where, for instance, part of the data residing in a car is temporarily shared with the city the car is traversing. This partial, and possibly temporal, integration of data between independent dataClay instances is implemented by means of dataClay's federation mechanism.
+In some scenarios, such as edge-to-cloud deployments, part of the data stored in a dataClay instance has to be shared with another dataClay instance running in a different device. An example can be found in the context of smart cities where, for instance, part of the data residing in a car is temporarily shared with the city the car is traversing. This partial, and possibly temporal, integration of data between independent dataClay instances is implemented by means of dataClay's federation mechanism.
 More precisely, federation consists in replicating an object (either simple or complex, such as a collection of objects) in an independent dataClay instance so that the recipient dataClay can access the object without the need to contact the owner dataClay. This provides immediate access to the object, avoiding communications when the object is requested and overcoming the possible unavailability of the data source. 
 
 An object can be federated with an unlimited number of other dataClay instances. Additionally, a dataClay instance that receives a federated object can federate it with other dataClay instances.
 
 Federated objects can be synchronized in all dataClay instances sharing them, in such a way that only those parts of the data that change are transferred through the network in order to avoid unnecessary transfers. This is achieved analogously to the synchronization of replicas stored among different backends of a single dataClay, as explained below. 
 
-To federate an object, both the source and the target dataClay must have the same data model registered. In the current version, this is achieved by extending the dataClay docker image in such a way that it already contains the registered model (see \ref{sec:dClayTool}). This extended docker image needs to be pulled in all the devices that will share data.
+To federate an object, both the source and the target dataClay must have the same data model registered. In the current version, this is achieved by extending the dataClay docker image in such a way that it already contains the registered model (see Section \ref{sec:dClayTool}). This extended docker image needs to be pulled in all the devices that will share data.
 
 In this section we present how to manage federation of objects that instantiate Java classes. 
 
-Let us suppose that we have our class Person:
+Assume we have our class Person:
 
 \begin{tBox}
-\begin{lstlisting}
+\begin{java}
 public class Person {
   String name;
   int age;
@@ -26,13 +26,13 @@ public class Person {
     this.age = age;
   }
 }
-\end{lstlisting}
+\end{java}
 \end{tBox}
 
 An application that federates an object of this class with another dataClay might look like this:
 
 \begin{tBox}
-\begin{lstlisting}
+\begin{java}
 import es.bsc.dataclay.api.DataClay;
 
 public class App {
@@ -46,14 +46,14 @@ public class App {
     p.federate(otherDC, false); 
   }
 }
-\end{lstlisting}
+\end{java}
 \end{tBox}
 
-The first step is to make both dataClay instances aware of each other by means of \textit{registerDataClay}. The dataClay instance id returned by this call is used as a parameter for the \textit{federate} call on the object to indicate the dataClay instance that will receive the federated object. 
+The first step is to make both dataClay instances aware of each other by means of the \textit{registerDataClay} method, explained in section \ref{sec:JavaFederationAPI}. The dataClay instance id returned by this call is used as a parameter for the \textit{federate} call on the object to indicate the dataClay instance that will receive the federated object. 
 At this point, an application accessing the dataClay instance \textit{otherDC} can execute the following code:
 
 \begin{tBox}
-\begin{lstlisting}
+\begin{java}
 public class App {
   public static void main(String[] args) {
     DataClay.init();
@@ -63,34 +63,36 @@ public class App {
     System.out.println(p.name);
   }
 }
-\end{lstlisting}
+\end{java}
 \end{tBox}
 
 The secondary dataClay has actually performed a replica of Person object aliased \textit{person1}. From now on, this 
 replica can be used in the execution environment of any of the backends of the secondary dataClay, as any other object created in \textit{otherDC}.
 
-A user-defined behaviour can optionally be attached to the class of the object to be federated, which will be executed upon reception of the object in the target dataClay instance. To do this, a method \texit{whenFederated} must be implemented in the corresponding class, for instance:
+A user-defined behaviour can optionally be attached to the class of the object to be federated, which will be executed upon reception of the object in the target dataClay instance. To do this, a method \textit{whenFederated} must be implemented in the corresponding class, for instance:
 
 \begin{tBox}
-\begin{lslisting}
+\begin{java}
 public class Person {
   String name;
   int age;
-  public Person(String name, int age) {
+ 
+ public Person(String name, int age) {
     this.name = name;
     this.age = age;
-  public whenFederated() {
+
+ public whenFederated() {
     PersonList pl = PersonList.getByAlias("persons"); 
     pl.add(this);
   }
 }
-\end{lstlisting}
+\end{java}
 \end{tBox}
 
 In this way, the application accessing the target dataClay instance can use the collection \textit{pl} to get all the available objects of class \textit{Person} at any time. Notice that \textit{pl} is not a federated object, but a collection residing in the target dataClay instance that includes objects federated from the source dataClay (as well as possibly other objects created in the target dataClay instance).
 
 \begin{tBox}
-\begin{lstlisting}
+\begin{java}
 public class App {
   public static void main(String[] args) {
     ...
@@ -102,13 +104,17 @@ public class App {
     ...
   }
 }
-\end{lstlisting}
+\end{java}
 \end{tBox}
  
-Federated objects can be synchronized using the same mechanisms provided to synchronize replicas within a dataClay instance, as explained in \ref\{sec:JavaReplication}. In this case, the method to syncrhonize federated objects following a sequential consistency policy is \textit{synchronizeFederated}, analogous to \textit{syncrhonize}, available in the \textit{SequentialConsistency} class. 
+Federated objects can be synchronized using the same mechanisms provided to synchronize replicas within a dataClay instance, as explained in \ref{sec:JavaReplication}. In this case, the method to syncrhonize federated objects following a sequential consistency policy is \textit{synchronizeFederated}, analogous to \textit{syncrhonize}, available in the \textit{SequentialConsistency} class. 
 
-To implement customized synchronization mechanisms on federated objects, the methods to be used are \textit{getFederationTargets}, which returns the identifiers of the dataClay instances where the object is federated, and \textit{getFederationSource}, which returns the source dataClay instance of a federated object in the current dataClay. Also, the method \textit{synchornizeFederated} is provided to execute a specific method on the replica of the object that is stored in the specified dataClay instance. The description of these methods can be found in section \ref{sec:JavaObjectAdvanced}.
+To implement customized synchronization mechanisms on federated objects, the methods to be used are \textit{getFederationTargets}, which returns the identifiers of the dataClay instances where the object is federated, and \textit{getFederationSource}, which returns the source dataClay instance of a federated object in the current dataClay. Also, the method \textit{synchornizeFederated} is provided to execute a specific method on the replica of the object that is stored in the specified dataClay instance. The description of these methods can be found in section \ref{sec:JavaFederationObject}.
 
 Both the source and the target dataClay instance can stop sharing an object by calling the \textit{unfederate} method on the federated object. Then, the replica in the target dataClay will be eventually removed by the garbage collector unless it has an alias or it is referenced by another object. In any case, it will cease to be synchronized with the original object. 
 
-Analogously to federation, the method \texit{whenUnfederated} can be implemented in the corresponding class to execute a customized behaviour in the target dataClay instance when an object is unfederated (for instance, removing the object from the \textit{PersonList} in the example above, so that the object can be garbage-collected.
+Analogously to federation, the method \textit{whenUnfederated} can be implemented in the corresponding class to execute a customized behaviour in the target dataClay instance when an object is unfederated (for instance, removing the object from the \textit{PersonList} in the example above, so that the object can be garbage-collected.
+
+\FEDERATION{
+\input{Java/jFederationAPI.tex}
+}

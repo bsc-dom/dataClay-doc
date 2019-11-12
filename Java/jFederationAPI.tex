@@ -1,7 +1,106 @@
-\section{Federation mechanism}
-\label{sec:JavaObjectFederation}
+In the following we present the API provided by dataClay to manage the federation of objects between dataClay instances. It comprises a set of methods that are part of the dataClay API to manage the connection between different dataClay instances, as well as object methods to manage the federation of objects. Recall that methods from the dataClay API can be called through \textit{DataClay} main class by including the import:
 
-More details about federation are presented in Section~\ref{sec:jFederation}.
+\colorbox{basecolor!20}{\texttt{import es.bsc.dataclay.api.DataClay}}
+
+\subsection{dataClay API methods}
+\label{sec:JavaFederationAPI}
+
+% ------- federateAllObjects ---------
+
+\begin{dBox}
+\texttt{public static DataClayInstanceID \CALL{federateAllObjects}(DataClayInstanceID dcID)}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Federates all the objects in the current dataClay instance with another dataClay instance. 
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries dcID:} ID of the external dataClay. It must be previously registered.
+\end{itemize}
+
+\end{dBox}
+
+% ------- getDataClayID ---------
+
+\begin{dBox}
+\texttt{public static DataClayInstanceID \CALL{getDataClayID}([String host, String port])}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves the ID of the dataClay instance accessible in \textit{host}, \textit{port}, or of the current dataClay instance if there are no parameters.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries host:} host where the dataClay instance is located.
+  \item \texttt{\bfseries port:} port where the dataClay instance is listening.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+ \item The ID of the current dataClay instance, or of the dataClay instance located in \textit{host}, \textit{port}.
+\end{itemize}
+
+\end{dBox}
+
+% ------- registerDataClay ---------
+
+\begin{dBox}
+\texttt{public static DataClayInstanceID \CALL{registerDataClay}(String host, String port)}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Makes the current dataClay instance aware of another dataClay instance accessible in \textit{host} and \textit{port}, and returns its ID.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries host:} host where the dataClay instance to be registered is located.
+  \item \texttt{\bfseries port:} port where the dataClay instance to be registered is listening.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+ \item The ID of the dataClay instance located in \textit{host}, \textit{port}.
+\end{itemize}
+
+\end{dBox}
+
+% ------- unfederateAllObjects ---------
+\begin{dBox}
+
+\texttt{public void \CALL{unfederateAllObjects}([DataClayInstanceID dcID])}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Unfederates all the objects in the current dataClay instance with the indicated dataClay instance. If no dataClayID is specified, the objects are unfederated from all the instances where they live.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries dcID:} ID of the external dataClay. It must be previously registered.
+\end{itemize}
+
+\end{dBox}
+
+\subsection{Object methods}
+\label{sec:JavaFederationObject}
 
 % ------- federate ---------
 \begin{dBox}

@@ -7,14 +7,14 @@ This chapter presents the Java API that can be used by applications divided into
 
 Notice that current supported Java version is 1.8 (OpenJDK 8, reference implementation of Java SE 8).
 
-\section{Global API}
+\section{dataClay API}
 \label{sec:JavaGlobalAPI}
 
 In this section, we present a set of calls that are not linked to any given object, but are general to the system.
 
 In Java, they can be called through \textit{DataClay} main class by including the import:
 
-\colorbox{basecolor!20}{\texttt{import dataclay.api.DataClay}}
+\colorbox{basecolor!20}{\texttt{import es.bsc.dataclay.api.DataClay}}
 
 
 % ------- finish ---------
@@ -93,7 +93,7 @@ In Java, they can be called through \textit{DataClay} main class by including th
 \end{dBox}
 
 \begin{tBox}
-\textcolor{basecolor} {\bf Example: Using global api - distributed people}
+\textcolor{basecolor} {\bf Example: Using dataClay api - distributed people}
 \begin{java}
 import dataclay.api.DataClay;
 import model.Person;
@@ -672,11 +672,6 @@ p1.newReplica(p1.getLocation(), DataClay.LOCAL);
 
 \end{dBox}
 
-%\FEDERATION{
-\input{Java/jFederationAPI.tex}
-%}
-
-
 
 % ------- moveObject ---------
 
@@ -846,6 +841,10 @@ Few considerations merit the attention of model developers:
  \end{itemize}
 \end{itemize}
 
+\FEDERATION{
+\input{Java/jFederation.tex}
+}
+
 \section{Further considerations}
 \label{sec:JavaConsiderations}
 
@@ -878,10 +877,6 @@ For example, given a Class A with a field b of type B, and B has a field list of
 \subsection{Third party libraries}
 
 Sometimes using third-party libraries from registered data models is not trivial, thus if you experience such problems, please contact us by email: \texttt{\href{mailto:support-dataclay@bsc.es}{support-dataclay@bsc.es}}
-
-\FEDERATION{
-\input{Java/jFederation.tex}
-}
 
 \FILTERING{
 \input{Java/jFiltering.tex}
