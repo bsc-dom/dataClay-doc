@@ -710,7 +710,7 @@ On the other hand, a Global Garbage Collector keeps track of global reference co
 \section{Replica management}\index{replica management}
 \label{sec:PythonReplication}
 
-Given that each object or piece of data may potentially need a different consistency model, {\bf dataClay will not synchronize objects}. On the other hand, it will offer mechanisms for the model developer to include it as part of the model in an easy way, and how to be able to import the consistency model form another class already defined.
+Given that each object or piece of data may potentially need a different consistency model, dataClay will not synchronize objects. On the other hand, it will offer mechanisms for the model developer to include it as part of the model in an easy way, and how to be able to import the consistency model form another class already defined.
 
 The first way to guarantee the consistency level required by a replicated object is to add the needed code in all setters/getter of the class. Although this is a feasible option is quite impractical if we need to add this code to all classes we want to build. Fir this reason, dataClay also offers a mechanism to add arbitrary code ( fom a static class) to be executed before or after a given method. This mechanism, explained in detail in this section, will enable programmers to build their consistency model once (or use a predefined one) and use it in any of their classes without modifying the class itself.
 
@@ -766,17 +766,17 @@ In order to overcome this problem, dataClay provides a mechanism to define synch
 
 The \textit{inMaster} annotation forces the update operation to be handled from the master location if set to true. The default master location of an object is the backend where the object was originally stored.
 
-On the other hand, \textit{beforeUpdate} and \textit{afterUpdate} define extra behavior to be executed before or after the update operation. The \textit{method} argument specifies an operation signature of the class of current class. In this way, the developer is allowed to define an action to be triggered before the update operation, and an action to be taken after the update operation.
+On the other hand, \textit{beforeUpdate} and \textit{afterUpdate} define extra behavior to be executed before or after the update operation. The \textit{method} argument specifies an operation signature of a method, which can belong to the same class or can be inherited from a mixin. In this way, the developer is allowed to define an action to be triggered before the update operation, and an action to be taken after the update operation.
 
 The \textit{ClassField} annotation allows the user to define which fields of the class have to apply the defined behavior.
 
-Let us resume our previous example. Assuming that the \textit{name} attribute is never modified (e.g. private setter), we want, however, that every time the \textit{age} is updated the change is propagated to all the replicas. Empowering Person class with the proper annotations, we can intervene updates of attribute \textit{age} to perform the update synchronization:
+Let us resume our previous example. Assuming that the \textit{name} attribute is never modified (e.g. private setter), we want, however, that every time the \textit{age} is updated the change is propagated to all the replicas. Empowering Person class with the proper annotations, we can intervene updates of attribute \textit{age} to perform the update synchronization, which has been implemented in the class \textit{SequentialConsistencyMixin}, extended by \textit{Person}:
 
 \begin{tBox}
 \begin{python}
-class Person(DataClayObject):
+class Person(DataClayObject, SequentialConsistencyMixin):
     """ 
-    @dclayReplication(afterUpdate='replicateToSlaves', inMaster='True')
+    @dclayReplication(afterUpdate='synchronize', inMaster='True')
     @ClassField age int
     """
 
@@ -785,23 +785,36 @@ class Person(DataClayObject):
         self.name = name
         self.age = age
 
-    @dclayMethod(attribute="str", value="anything")
-    def replicateToSlaves(self, attribute, value):
-        from dataclay.DataClayObjProperties import DCLAY_SETTER_PREFIX
-        for exeenv_id in self.get_all_locations():
-            if exeenv_id != master_location:
-                self.run_remote(exeenv_id, DCLAY_SETTER_PREFIX + attribute, value)
 \end{python}
 \end{tBox}
 
-Notice that the class has now implemented the behavior to synchronize replicas through the method \textit{replicateToSlaves}. That is, in this example, the master replica leads a sequential consistency model by synchronizing the contents with secondary replicas.
+Following the example, and as part of the class model, the proposed \textit{SequentialConsistencyMixin} class can be implemented as follows:
+\begin{tBox}
+\begin{python}
+class SequentialConsistencyMixin(object):
 
-Few considerations merit the attention of model developers:
+    @dclayMethod(attribute="str", value="anything")
+    def synchronize(self, attribute, value):
+        from dataclay.DataClayObjProperties import DCLAY_SETTER_PREFIX
+        for exeenv_id in self.get_all_locations().keys():
+            if exeenv_id != master_location:
+                self.run_remote(exeenv_id, DCLAY_SETTER_PREFIX + attribute, value)
+
+\end{python}
+\end{tBox}
+
+In this example, the master replica leads a sequential consistency model by synchronizing the contents with secondary replicas.
+
+Some considerations merit the attention of model developers:
 
 \begin{itemize}
     \item The master location can be checked through the field \textit{master\_location}.
-    \item The method whose name is specified in the annotations is implemented in the model class and receives the attribute name to be set and its new value.
+    \item The method whose name is specified in the annotations is implemented in the model class or a superclass and receives the attribute name to be set and its new value.
 \end{itemize}
+
+For convenience,  the implementation of the \textit{SequentialConsistency} class in the example can be used by including the import:
+
+\colorbox{basecolor!20}{\texttt{from dataClay.contrib.synchronization import SequentialConsistencyMixin}}
 
 \section{Further considerations}
 \label{sec:PythonConsiderations}
