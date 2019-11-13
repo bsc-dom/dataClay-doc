@@ -60,46 +60,25 @@ services:
   ####################################
   #  LOGIC MODULE                    #
   ####################################
-  lmpostgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-
   logicmodule:
     image: "bscdataclay/logicmodule"
-    depends_on:
-      - "lmpostgres"
     ports:
       - "11034:11034"
     environment:
       - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=lmpostgres
 
   ####################################
   #  BACKEND                         #
   ####################################
-  ds1postgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-
   ds1java:
     image: "bscdataclay/dsjava"
     depends_on:
-      - "ds1postgres"
       - "logicmodule"
     environment:
       - DATASERVICE_NAME=DS1
       - DATASERVICE_JAVA_PORT_TCP=6866
       - LOGICMODULE_HOST=logicmodule
       - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=ds1postgres
 
   ds1pythonee:
     image: "bscdataclay/dspython"
@@ -122,53 +101,20 @@ Before starting, the first step is to download the required images executing the
 
 At this point, following subsections detail the different parts of the file and which ones can be customized.
 
-\subsubsection{DBMS}
-Current version of dataClay might use either PostgreSQL or SQLite for the persistence layer. 
-
-Default DBMS is PostgreSQL which is executed in dedicated containers to serve the Logic Module (\textit{lmpostgres}) and the Data Service (\textit{ds1postgres}). Furthermore, a default user, password and database names are populated to guarantee that PostgreSQL is configured properly.
-
-It is also possible to tune PostgreSQL by passing extra arguments through the \textit{command} subsection. In this case, the \textit{fsync} attribute is deactivated for performance purposes, but you can delete it or activate it if you prefer synchronous updates.
-
-On the other hand, SQLite is deployed as a library so it is already installed in both Logic Module and Data Service images. In this case, we can simplify docker-compose files removing \textit{*postgres} containers, but we have to customize a bit the default configuration of dataClay. Section~\ref{sec:SQLiteConf} shows how to set this up.
-
-
 \subsubsection{Logic Module}
-The \textit{logicmodule}  service corresponds to the Logic Module and refers to its PostgreSQL container through the environment variable \texttt{POSTGRES\_HOST}, by pointing to the host name of its PostgreSQL service: \textit{lmpostgres}.
-
-On the other hand, it is also possible to customize the default Logic Module port, which is currently set to 11034 through environment variable \texttt{LOGICMODULE\_PORT\_TCP} and is mapped to host in \texttt{ports: - ``11034:11034''}. 
+The \textit{logicmodule}  service corresponds to the Logic Module. It is possible to customize the default Logic Module port, which is currently set to 11034 through environment variable \texttt{LOGICMODULE\_PORT\_TCP} and is mapped to host in \texttt{ports: - ``11034:11034''}. 
 
 In this way, the Logic Module will publish its service at: \texttt{localhost:11034}. In section \ref{sec:ClientConfigFiles} it is described how to define the proper configuration files for user's applications considering this info.
 
 \subsubsection{Data Service Backend - Java}
-The \textit{ds1java}  service corresponds to the Java container of the Data Service Backend, and refers to its PostgreSQL container through the environment variable \texttt{POSTGRES\_HOST} by pointing to the host name of its PostgreSQL service: \textit{ds1postgres}.
-
-Every Data Service backend is tagged with a name so containers for all supported languages can be defined as part of the same backend. This is specially useful to, for instance, define a unique PostgreSQL database shared by different execution environments. In this case, the Java container is configured to be part of the Data Service backend called \textit{DS1} as defined via the \texttt{DATASERVICE\_NAME} variable. Furthermore, it is also necessary to specify the port that will be used to handle Java execution requests: \texttt{DATASERVICE\_JAVA\_PORT\_TCP=6866}.
+The \textit{ds1java}  service corresponds to the Java container of the Data Service Backend. Every Data Service backend is tagged with a name so containers for all supported languages can be defined as part of the same backend. This is specially useful to, for instance, define a unique database shared by different execution environments. In this case, the Java container is configured to be part of the Data Service backend called \textit{DS1} as defined via the \texttt{DATASERVICE\_NAME} variable. Furthermore, it is also necessary to specify the port that will be used to handle Java execution requests: \texttt{DATASERVICE\_JAVA\_PORT\_TCP=6866}.
 
 Finally, we also need to specify the address of the Logic Module to enable this Java container to populate its service. To this end, we use the same variables and values as in the Logic Module service (\textit{logicmodule}): \texttt{LOGICMODULE\_HOST=logicmodule} and \texttt{LOGICMODULE\_PORT\_TCP=11034}.
 
 \subsubsection{Data Service Backend - Python}
-The Python container does not require any reference to PostgreSQL because currently all data persistence is handled from Java. Therefore, we only need to attach this container to a Data Service backend with Java support. In this case, we attach the Python container to \textit{DS1} Data Service backend through the \texttt{DATASERVICE\_NAME} variable. Furthermore, it is also necessary to specify the port that will be used to handle Java execution requests: \texttt{DATASERVICE\_PYTHON\_PORT\_TCP=6867}.
+For Python, we only need to attach the container to a Data Service backend with Java support. In this case, we attach the Python container to \textit{DS1} Data Service backend through the \texttt{DATASERVICE\_NAME} variable. Furthermore, it is also necessary to specify the port that will be used to handle Java execution requests: \texttt{DATASERVICE\_PYTHON\_PORT\_TCP=6867}.
 
 Finally, we also need to specify the address of the Logic Module to enable this Python container to populate its service. To this end, we use the same variables and values as in the Logic Module service (\textit{logicmodule}): \texttt{LOGICMODULE\_HOST=logicmodule} and \texttt{LOGICMODULE\_PORT\_TCP=11034}.
-
-As mentioned in previous chapters, dataClay supports both Python 2 and Python 3 applications (and corresponding class models), but all the backends in the system, as well as the clients, should use the same Python major version.
-
-By default, Python images tagged as \textit{latest} are based on Python 3, so we need a slight modification in docker-compose files to execute Python 2 applications. In particular, those containers based on \textit{bscdataclay/dspython} image (i.e. \textit{bscdataclay/dspython:latest}) must be modified to use \textit{bscdataclay/dspython:latest-py2.7} instead as in the example below:
-
-\begin{tBox}
- \begin{lstlisting}[language=docker-compose-2, frame=none]
-  ds1pythonee:
-    image: "bscdataclay/dspython:latest-py2.7"
-    depends_on:
-      - "ds1java"
-    environment:
-      - DATASERVICE_NAME=DS1
-      - DATASERVICE_PYTHON_PORT_TCP=6867
-      - LOGICMODULE_HOST=logicmodule
-      - LOGICMODULE_PORT_TCP=11034
- \end{lstlisting}
-\end{tBox}
-
 
 \subsection{Cluster installation}
 
@@ -183,28 +129,16 @@ In this section we describe a setup for a 3 node cluster with 1 node for the Log
 
 \subsubsection{Node 1 - Logic Module}
 
-The docker-compose file for the first node defining the Logic Module. Notice that using host network we do not need to map its port and \texttt{POSTGRES\_HOST} variable can be set to \textit{localhost}.
+The docker-compose file for the first node defining the Logic Module. Notice that using host network we do not need to map its port.
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
 version: '2'
 services:
-  lmpostgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-    network_mode: host
-
   logicmodule:
     image: "bscdataclay/logicmodule"
-    depends_on:
-      - "lmpostgres"
     environment:
       - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=localhost
     network_mode: host
  \end{lstlisting}
 \end{tBox}
@@ -213,33 +147,19 @@ services:
 
 This node runs the Data Service backend \textit{DS1}, as specified through the \texttt{DATASERVICE\_NAME} variable.
 
-In the same way as for the Logic Module, \texttt{POSTGRES\_HOST} can be set to \textit{localhost}.
-
 Notice that the only variable that needs to be manually defined is \texttt{LOGICMODULE\_HOST}, which will be the host name of Node 1 where the Logic Module is deployed.
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
 version: '2'
 services:
-  ds1postgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-    network_mode: host
-
   ds1java:
     image: "bscdataclay/dsjava"
-    depends_on:
-      - "ds1postgres"
     environment:
       - DATASERVICE_NAME=DS1
       - DATASERVICE_JAVA_PORT_TCP=6866
       - LOGICMODULE_HOST= #TO BE EDITED
       - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=localhost
     network_mode: host
 
   ds1pythonee:
@@ -259,33 +179,19 @@ services:
 
 Analogously to Node 2, this node runs the Data Service backend \textit{DS2}, as specified through the \texttt{DATASERVICE\_NAME} variable.
 
-In the same way as for the Logic Module, \texttt{POSTGRES\_HOST} can be set to \textit{localhost}.
-
 Finally, the only variable that needs to be manually defined is \texttt{LOGICMODULE\_HOST} with the host name of the Node 1 where Logic Module is deployed.
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
 version: '2'
 services:
-  ds2postgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-    network_mode: host
-
   ds2java:
     image: "bscdataclay/dsjava"
-    depends_on:
-      - "ds2postgres"
     environment:
       - DATASERVICE_NAME=DS2
       - DATASERVICE_JAVA_PORT_TCP=6866
       - LOGICMODULE_HOST= #TO BE EDITED
       - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=localhost
     network_mode: host
 
   ds2pythonee:
@@ -315,46 +221,25 @@ services:
   ####################################
   #  LOGIC MODULE                    #
   ####################################
-  lmpostgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-
   logicmodule:
     image: "bscdataclay/logicmodule"
-    depends_on:
-      - "lmpostgres"
     ports:
       - "11034:11034"
     environment:
       - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=lmpostgres
 
   ####################################
   #  BACKEND                         #
   ####################################
-  ds1postgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-
   ds1java:
     image: "bscdataclay/dsjava"
     depends_on:
-      - "ds1postgres"
       - "logicmodule"
     environment:
       - DATASERVICE_NAME=DS1
       - DATASERVICE_JAVA_PORT_TCP=6866
       - LOGICMODULE_HOST=logicmodule
       - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=ds1postgres
 
   ds1pythonee1:
     image: "bscdataclay/dspython"
@@ -396,84 +281,6 @@ services:
   ####################################
   #  LOGIC MODULE                    #
   ####################################
-  lmpostgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-
-  logicmodule:
-    image: "bscdataclay/logicmodule"
-    depends_on:
-      - "lmpostgres"
-    ports:
-      - "11034:11034"
-    environment:
-      - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=lmpostgres
-    volumes:
-      - ./cfgfiles/global.properties:/usr/src/dataclay/cfgfiles/global.properties
-
-  ####################################
-  #  BACKEND                         #
-  ####################################
-  ds1postgres:
-    image: "bscdataclay/postgres"
-    environment:
-      - POSTGRES_USER=dataclay
-      - POSTGRES_PASSWORD=dataclay
-      - POSTGRES_DB=dataclay
-    command: -c fsync=off
-
-  ds1java:
-    image: "bscdataclay/dsjava"
-    depends_on:
-      - "ds1postgres"
-      - "logicmodule"
-    environment:
-      - DATASERVICE_NAME=DS1
-      - DATASERVICE_JAVA_PORT_TCP=6866
-      - LOGICMODULE_HOST=logicmodule
-      - LOGICMODULE_PORT_TCP=11034
-      - POSTGRES_HOST=ds1postgres
-    volumes:
-      - ./cfgfiles/global.properties:/usr/src/dataclay/cfgfiles/global.properties
-
-  ds1pythonee:
-    image: "bscdataclay/dspython"
-    depends_on:
-      - "ds1java"
-    environment:
-      - DATASERVICE_NAME=DS1
-      - DATASERVICE_PYTHON_PORT_TCP=6867
-      - LOGICMODULE_HOST=logicmodule
-      - LOGICMODULE_PORT_TCP=11034     
-    volumes:
-      - ./cfgfiles/global.properties:/usr/src/dataclay/cfgfiles/global.properties
- \end{lstlisting}
-\end{tBox}
-
-\subsubsection{SQLite}
-\label{sec:SQLiteConf}
-
-As mentioned in previous sections, dataClay can be configured to use SQLite instead of PostgreSQL. If this is the case, the following flags must be present in \texttt{./cfgfiles/global.properties} to configure Logic Module and Data Service persistence layer respectively:
-
-\begin{itemize}
- \item \begin{verbatim} DB_HANDLER_TYPE_FOR_LOGICMODULE=SQLITE \end{verbatim}
- \item \begin{verbatim} DB_HANDLER_TYPE_FOR_DATASERVICES=SQLITE \end{verbatim}
-\end{itemize}
-
-We can also eliminate all postgres containers and related environment variables from docker-compose files, as shown in the following example based on the single-node scenario described in Section~\ref{sec:SingleNodeInstall}:
-
-\begin{tBox}
- \begin{lstlisting}[language=docker-compose-2, frame=none]
-version: '2' 
-services:
-  ####################################
-  #  LOGIC MODULE                    #
-  ####################################
   logicmodule:
     image: "bscdataclay/logicmodule"
     ports:
@@ -511,7 +318,6 @@ services:
       - ./cfgfiles/global.properties:/usr/src/dataclay/cfgfiles/global.properties
  \end{lstlisting}
 \end{tBox}
-
 
 \subsubsection{Memory Management and Garbage Collection}\index{memory management}\index{garbage collection}
 
