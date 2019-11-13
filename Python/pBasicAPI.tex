@@ -570,7 +570,7 @@ assert new_person.get_location() == api.LOCAL
 \begin{itemize}
     \item Creates a replica of the current object.
     
-    It is very important to realize that dataClay does not take care of replica synchronization. Details on how such synchronization can be achieved are described in Section~\ref{sec:PythonReplication}.
+    It is important to notice that dataClay does not take care of replica synchronization. Details on how such synchronization can be achieved are described in Section~\ref{sec:PythonReplication}.
     \newline
     \newline
     Notice that the replication of an object includes the replication of its subobjects (references) as the default behavior (i.e. recursive is True by default). Therefore, some objects (including current object) might be already present in the destination backend. These objects will be ignored from replication, since a backend cannot have two replicas of the same object. But it is ensured that, after a correct execution of this method, a full copy of the current object (and all its subobjects if recursive) is present in the returned backend (same as backend\_ID if user specifies it).
@@ -716,7 +716,7 @@ The first way to guarantee the consistency level required by a replicated object
 
 In this section, we present how to add consistency code into existing classes.
 
-Let us suppose that we have our class Person:
+Let us assume that we have our class Person:
 
 \begin{tBox}
 \begin{python}

@@ -596,7 +596,7 @@ assertTrue(p1.getLocation().equals(DataClay.LOCAL));
 \begin{itemize}
     \item Creates a replica of the current object.
     
-    It is very important to realize that dataClay does not take care of replica synchronization. Details on how such synchronization can be achieved are described in Section~\ref{sec:JavaReplication}.
+    It is important to notice that dataClay does not take care of replica synchronization. Details on how such synchronization can be achieved are described in Section~\ref{sec:JavaReplication}.
     \newline
     \newline
     Notice that the replication of an object includes the replication of its subobjects (references) as the default behavior (i.e. recursive is True by default). Therefore, some objects (including current object) might be already present in the destination backend. These objects will be ignored from replication, since a backend cannot have two replicas of the same object. But it is ensured that, after a correct execution of this method, a full copy of the current object (and all its subobjects if recursive) is present in the returned backend (same as backendID if user specifies it).
@@ -734,7 +734,7 @@ The first way to guarantee the consistency level required by a replicated object
 
 In this section, we present how to add consistency code into existing classes.
 
-Let us suppose that we have our class Person:
+Let us assume that we have our class Person:
 
 \begin{tBox}
 \begin{java}
@@ -774,9 +774,9 @@ In order to overcome this problem, dataClay provides a mechanism to define synch
 
 \begin{tBox}
 \begin{java}
-    @DataClayAnnotations.InMaster
-    @DataClayAnnotations.BeforeUpdate(method="...", clazz="...")
-    @DataClayAnnotations.AfterUpdate(method="...", clazz="...")
+    @Replication.InMaster
+    @Replication.BeforeUpdate(method="...", clazz="...")
+    @Replication.AfterUpdate(method="...", clazz="...")
 \end{java}
 \end{tBox}
 
@@ -791,8 +791,8 @@ Let us resume our previous example. Assuming that the \textit{name} attribute is
 public class Person {
   String name;
 
-  @Inmaster
-  @DataClayAnnotations.AfterUpdate(method="replicateToSlaves",
+  @Replication.InMaster
+  @Replication.AfterUpdate(method="replicateToSlaves",
                                     clazz="model.SequentialConsistency")
   int age;
   public Person(String name, int age) {
@@ -803,7 +803,7 @@ public class Person {
 \end{java}
 \end{tBox}
 
-Following the example, an as part of the class model, the proposed \textit{SequentialConsistency} class could be implemented as follows:
+Following the example, and as part of the class model, the proposed \textit{SequentialConsistency} class can be implemented as follows:
 
 \begin{tBox}
 \begin{java}
@@ -827,7 +827,7 @@ public class SequentialConsistency {
 \end{java}
 \end{tBox}
 
-In this example, the master replica leads a sequential consistency model by synchronizing the contents with secondary replicas.
+In this example, the master replica leads a sequential consistency model by synchronizing the contents with secondary replicas. 
 
 Few considerations merit the attention of model developers:
 
@@ -840,6 +840,10 @@ Few considerations merit the attention of model developers:
     \item The arguments received by the method. In our example, the new age to be set.
  \end{itemize}
 \end{itemize}
+
+For convenience, the implementation of the \textit{SequentialConsistency} class in the example can be used by including the import:
+
+\colorbox{basecolor!20}{\texttt{import es.bsc.dataclay.util.replication.Replication}}
 
 \FEDERATION{
 \input{Java/jFederation.tex}
