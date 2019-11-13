@@ -95,7 +95,7 @@ In Java, they can be called through \textit{DataClay} main class by including th
 \begin{tBox}
 \textcolor{basecolor} {\bf Example: Using dataClay api - distributed people}
 \begin{java}
-import dataclay.api.DataClay;
+import es.bsc.dataclay.api.DataClay;
 import model.Person;
 
 // Open session with init()
@@ -288,7 +288,7 @@ assertTrue(copy.getAge() == p.getAge())
 {\it Description:}
 
 \begin{itemize}
-    \item Stores an aliased object in the system and assigns an OID to it. Notice this method allows specifying a certain backend. In this regard, the \colorbox{basecolor!15}{\texttt{\bfseries DataClay.LOCAL}} field can be set as a constant for a specific backendID (as detailed in Section~\ref{sec:ClientConfigFiles}). To use this field from your application, you have to add the proper import: \colorbox{basecolor!15}{\texttt{import dataClay.api.DataClay}}.
+    \item Stores an aliased object in the system and assigns an OID to it. Notice this method allows specifying a certain backend. In this regard, the \colorbox{basecolor!15}{\texttt{\bfseries DataClay.LOCAL}} field can be set as a constant for a specific backendID (as detailed in Section~\ref{sec:ClientConfigFiles}). To use this field from your application, you have to add the proper import: \colorbox{basecolor!15}{\texttt{import es.bsc.dataClay.api.DataClay}}.
 \end{itemize}
 
 {\it Parameters:}
