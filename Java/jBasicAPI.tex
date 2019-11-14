@@ -882,6 +882,22 @@ For example, given a Class A with a field b of type B, and B has a field list of
 
 Sometimes using third-party libraries from registered data models is not trivial, thus if you experience such problems, please contact us by email: \texttt{\href{mailto:support-dataclay@bsc.es}{support-dataclay@bsc.es}}
 
+\subsection{POM based projects}
+\label{sec:POMbasedProjects}
+
+If you are deploying pom-based applications you can add the following dependency into your pom file to install the Java client library:
+
+\begin{tBox}
+\footnotesize
+ \begin{bash}
+  <dependency>
+    <groupId>es.bsc.dataclay</groupId>
+    <artifactId>dataclay</artifactId>
+    <version>2.0</version>
+  </dependency>
+ \end{bash}
+\end{tBox}
+
 \FILTERING{
 \input{Java/jFiltering.tex}
 }

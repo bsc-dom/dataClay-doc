@@ -1,6 +1,6 @@
 \chapterimage{Client.jpg} % Chapter heading image
 
-\chapter{System Installation}\index{installation}
+\chapter{Deployment}\index{installation}
 \label{sec:SystemInstall}
 
 This chapter explains how to perform a dataClay installation. First, we briefly describe the dataClay architecture for the better understanding of its different components and their interactions. Thereafter, we show how to deploy a minimum dataClay installation based on Dockers\index{dockers}, and how to extrapolate this basic setup to more complex scenarios.
@@ -37,7 +37,7 @@ This means that when an application initializes a session with dataClay, it firs
 
 
 
-\section{Installation with Docker \index{docker} containers}
+\section{Deployment with containers \index{docker}}
 
 Keeping in mind the dataClay architecture, hereafter we show how to deploy a dataClay installation based on Docker \footnote{\url{https://www.docker.com}} containers.
 
@@ -277,7 +277,6 @@ services:
 \end{tBox}
 
 
-
 \subsection{Enabling Python parallelism}
 \label{sec:PythonParallelism}
 
@@ -436,7 +435,10 @@ services:
  \end{lstlisting}
 \end{tBox}
 
-\subsubsection{Memory Management and Garbage Collection}\index{memory management}\index{garbage collection}
+\subsection{Singularity}
+dataClay can also be deployed using Singularity: once converted the Docker images as explained in the \href{https://sylabs.io/guides/3.0/user-guide/build_a_container.html#downloading-an-existing-container-from-docker-hub}{Singularity official guide}, each container can be orchestrated by using \href{https://singularityhub.github.io/singularity-compose}{Singularity Compose} (e.g. by manually porting the configurations contained in docker-compose.yml example files).
+
+\subsection{Memory Management and Garbage Collection}\index{memory management}\index{garbage collection}
 
 In section \ref{sec:GarbageCollection} we have introduced that dataClay runs some processes to keep memory and disk usage in a healthy state. On the one hand, flushing objects from memory to disk when memory usage reaches a certain threshold. On the other hand, keeping track of reference counters to detect objects that are no longer accessible so they can be removed from the system.
 
@@ -470,7 +472,7 @@ GLOBALGC_CHECK_TIME_INTERVAL=1000000
 \end{tBox}
 
 \PREFETCH{
-\subsubsection{Data Prefetching}\index{prefetching}
+\subsubsubsection{Data Prefetching}\index{prefetching}
 \label{sec:prefetchingTuning}
 As explained in Section \ref{sec:prefetching}, the user can activate data prefetching in dataClay in order to improve the application performance. In order to do so, the following property should be set to true in the \textit{global.properties} file of both the logic module and data services when dataClay is installed.
 
