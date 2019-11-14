@@ -8,7 +8,7 @@ In the following we present the API provided by dataClay to manage the federatio
 % ------- federateAllObjects ---------
 
 \begin{dBox}
-\texttt{public static DataClayInstanceID \CALL{federateAllObjects}(DataClayInstanceID dcID)}
+\texttt{public static void \CALL{federateAllObjects}(DataClayInstanceID dcID)}
 \LINE
 
 {\it Description:}
@@ -82,13 +82,13 @@ In the following we present the API provided by dataClay to manage the federatio
 % ------- unfederateAllObjects ---------
 \begin{dBox}
 
-\texttt{public void \CALL{unfederateAllObjects}([DataClayInstanceID dcID])}
+\texttt{public static void \CALL{unfederateAllObjects}([DataClayInstanceID dcID])}
 \LINE
 
 {\it Description:}
 
 \begin{itemize}
-  \item Unfederates all the objects in the current dataClay instance with the indicated dataClay instance. If no dataClayID is specified, the objects are unfederated from all the instances where they live.
+  \item Unfederates all the objects in the current dataClay instance with the indicated dataClay instance. If no \textit{dcID} is specified, the objects are unfederated from all the instances where they live.
 \end{itemize}
 
 {\it Parameters:}
@@ -162,7 +162,7 @@ p1.federate(otherDC);
 {\it Description:}
 
 \begin{itemize}
- \item Retrieves the IDs of all the dataClay instances where the object is federated to. 
+ \item Retrieves the IDs of all the dataClay instances where the object is federated. 
 \end{itemize}
 
 {\it Returns:}
@@ -184,23 +184,23 @@ return (!federation.size() == 0)
 \end{java}
 \end{tBox}
 
-% ------- synchronizeFederated --------
+% ------- setInDataClayInstance --------
 
 \begin{dBox}
-\texttt{public void \CALL{synchronizeFederated}(DataClayInstanceID dcID, \newline ImplementationID implID, Object[] params)} 
+\texttt{public void \CALL{setInDataClayInstance}(DataClayInstanceID dcID, \newline ImplementationID setterID, Object[] params)} 
 \LINE
 
 {\it Description:}
 
 \begin{itemize}
-  \item Executes an implementation on a particular dataClay where the object is federated, for synchronization purposes.
+  \item Executes a setter on a particular dataClay where the object is federated.
 \end{itemize}
 
 {\it Parameters:}
 
 \begin{itemize}
   \item \texttt{\bfseries dcID:} dataClay instance where the method must be executed.
-  \item \texttt{\bfseries pimlID:} ID of the implementation to be executed.
+  \item \texttt{\bfseries setterID:} ID of the setter to be executed.
   \item \texttt{\bfseries params:} The parameters of the method.
 \end{itemize}
  
@@ -215,7 +215,7 @@ return (!federation.size() == 0)
 {\it Description:}
 
 \begin{itemize}
-  \item Unfederates current object (and referenced objects) with the indicated dataClay instance. If no dataClayID is specified, the object is unfederated from all the instances where it lives.
+  \item Unfederates current object (and referenced objects) with the indicated dataClay instance. If no \textit{dcID} is specified, the object is unfederated from all the instances where it lives.
 \end{itemize}
 
 {\it Parameters:}

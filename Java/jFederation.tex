@@ -1,8 +1,6 @@
 \section{dataClay in edge-to-cloud environments}\index{federation}
 \label{sec:jFederation}
 
-\TODO{This is replicated in \ref{sec:pFederation}}
-
 In some scenarios, such as edge-to-cloud deployments, part of the data stored in a dataClay instance has to be shared with another dataClay instance running in a different device. An example can be found in the context of smart cities where, for instance, part of the data residing in a car is temporarily shared with the city the car is traversing. This partial, and possibly temporal, integration of data between independent dataClay instances is implemented by means of dataClay's federation mechanism.
 More precisely, federation consists in replicating an object (either simple or complex, such as a collection of objects) in an independent dataClay instance so that the recipient dataClay can access the object without the need to contact the owner dataClay. This provides immediate access to the object, avoiding communications when the object is requested and overcoming the possible unavailability of the data source. 
 
@@ -43,7 +41,7 @@ public class App {
     Person p = new Person("Alice", 42);
     p.makePersistent("person1");
     
-    p.federate(otherDC, false); 
+    p.federate(otherDC); 
   }
 }
 \end{java}
@@ -107,9 +105,9 @@ public class App {
 \end{java}
 \end{tBox}
  
-Federated objects can be synchronized using the same mechanisms provided to synchronize replicas within a dataClay instance, as explained in \ref{sec:JavaReplication}. In this case, the method to syncrhonize federated objects following a sequential consistency policy is \textit{synchronizeFederated}, analogous to \textit{syncrhonize}, available in the \textit{SequentialConsistency} class. 
+Federated objects can be synchronized using the same mechanisms provided to synchronize replicas within a dataClay instance, as explained in \ref{sec:JavaReplication}. To implement customized synchronization mechanisms on federated objects, the methods to be used are \textit{getFederationTargets}, which returns the identifiers of the dataClay instances where the object is federated, and \textit{getFederationSource}, which returns the source dataClay instance of a federated object in the current dataClay. Also, the method \textit{setInBackend} is provided to execute a setter method on the replica of the object that is stored in the specified dataClay instance. The description of these methods can be found in section \ref{sec:JavaFederationObject}.
 
-To implement customized synchronization mechanisms on federated objects, the methods to be used are \textit{getFederationTargets}, which returns the identifiers of the dataClay instances where the object is federated, and \textit{getFederationSource}, which returns the source dataClay instance of a federated object in the current dataClay. Also, the method \textit{synchornizeFederated} is provided to execute a specific method on the replica of the object that is stored in the specified dataClay instance. The description of these methods can be found in section \ref{sec:JavaFederationObject}.
+For convenience, to synchronize federated objects following a sequential consistency policy, the method \textit{synchronizeFederated} in the same \textit{SequentialConsistency} class can be used.
 
 Both the source and the target dataClay instance can stop sharing an object by calling the \textit{unfederate} method on the federated object. Then, the replica in the target dataClay will be eventually removed by the garbage collector unless it has an alias or it is referenced by another object. In any case, it will cease to be synchronized with the original object. 
 

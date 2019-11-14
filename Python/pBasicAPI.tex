@@ -7,7 +7,7 @@ This chapter presents the Python API that can be used by applications divided in
 
 Notice that current supported Python versions are 2 and 3, but all the backends in the system, as well as the clients, should use the same Python major version (Section~\ref{sec:SystemInstall} describes further details about this).
 
-\section{Global API}
+\section{dataClay API}
 \label{sec:PythonGlobalAPI}
 
 In this section, we present a set of calls that are not linked to any given object, but are general to the system.
@@ -91,7 +91,7 @@ In Python, they can be called through \textit{dataclay.api} with the proper impo
 \end{dBox}
 
 \begin{tBox}
-\textcolor{basecolor} {\bf Example: Using global api - distributed people}
+\textcolor{basecolor} {\bf Example: Using dataClay api - distributed people}
 \begin{python}
 from itertools import cycle
 from dataclay.api import finish, init, get_backends
@@ -646,12 +646,6 @@ p1.new_replica(api.LOCAL)
 
 \end{dBox}
 
-\FEDERATION{
-\input{Python/pFederationAPI.tex}
-}
-
-
-
 % ------- moveObject ---------
 
 %\begin{dBox}
@@ -816,6 +810,10 @@ For convenience,  the implementation of the \textit{SequentialConsistency} class
 
 \colorbox{basecolor!20}{\texttt{from dataClay.contrib.synchronization import SequentialConsistencyMixin}}
 
+\FEDERATION{
+\input{Python/pFederation.tex}
+}
+
 \section{Further considerations}
 \label{sec:PythonConsiderations}
 
@@ -899,7 +897,3 @@ Sometimes using third-party libraries from registered data models is not trivial
 Multithreading is supported both at the client side and at the server side. However, due to the CPython Global Interpreter Lock implementation details, only one thread can execute Python code at once (even though certain performance-oriented libraries might overcome this limitation). If you have Python-pure CPU-intensive parallel workloads which are being executed in methods of dataClay persisted objects, then you may experience serialization of executions (and thus, loss of performance).
 
 In Section~\ref{sec:PythonParallelism} we explain how to face this problem, but if you still have some doubts or further requirements for your applications, please contact us (\texttt{\href{mailto:support-dataclay@bsc.es}{support-dataclay@bsc.es}}) and we will provide you the proper solutions.
-
-\FEDERATION{
-\input{Python/pFederation.tex}
-}
