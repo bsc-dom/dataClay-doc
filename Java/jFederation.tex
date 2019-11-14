@@ -116,3 +116,17 @@ Analogously to federation, the method \textit{whenUnfederated} can be implemente
 \FEDERATION{
 \input{Java/jFederationAPI.tex}
 }
+
+An example of the \textit{global.properties} file with TLS could be
+
+\begin{tBox}
+ \begin{bash}
+LM_SERVICE_ALIAS_HEADERMSG=logicmodule
+SSL_TARGET_AUTHORITY=proxy 
+SSL_CLIENT_TRUSTED_CERTIFICATES=/usr/src/demo/app/certs/dataclay-ca.crt
+SSL_CLIENT_CERTIFICATE=/usr/src/demo/app/certs/dataclay-agent.crt
+SSL_CLIENT_KEY=/usr/src/demo/app/certs/dataclay-agent.pem
+ \end{bash}
+\end{tBox}
+
+Where LM_SERVICE_ALIAS_HEADERMSG is used 

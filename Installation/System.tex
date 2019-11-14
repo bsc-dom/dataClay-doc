@@ -55,40 +55,62 @@ To this end, we will guide you through the installation process by looking at th
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
-version: '2' 
+version: '3.4'
 services:
-  ####################################
-  #  LOGIC MODULE                    #
-  ####################################
   logicmodule:
-    image: "bscdataclay/logicmodule"
+    image: "bscdataclay/logicmodule:2.0"
     ports:
       - "11034:11034"
     environment:
       - LOGICMODULE_PORT_TCP=11034
-
-  ####################################
-  #  BACKEND                         #
-  ####################################
-  ds1java:
-    image: "bscdataclay/dsjava"
-    depends_on:
-      - "logicmodule"
-    environment:
-      - DATASERVICE_NAME=DS1
-      - DATASERVICE_JAVA_PORT_TCP=6866
       - LOGICMODULE_HOST=logicmodule
-      - LOGICMODULE_PORT_TCP=11034
-
-  ds1pythonee:
-    image: "bscdataclay/dspython"
+      - DATACLAY_ADMIN_USER=admin
+      - DATACLAY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+         
+  dsjava:
+    image: "bscdataclay/dsjava:2.0"
+    ports:
+      - "2127:2127"
     depends_on:
-      - "ds1java"
+      - logicmodule
     environment:
       - DATASERVICE_NAME=DS1
+      - DATASERVICE_JAVA_PORT_TCP=2127
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+       
+  dspython:
+    image: "bscdataclay/dspython:2.0"
+    ports:
+      - "6867:6867"
+    depends_on:
+      - logicmodule
+      - dsjava
+    environment:
+      - DATASERVICE_NAME=DS1
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
       - DATASERVICE_PYTHON_PORT_TCP=6867
-      - LOGICMODULE_HOST=logicmodule
-      - LOGICMODULE_PORT_TCP=11034
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
  \end{lstlisting}
 \end{tBox}
 
@@ -107,7 +129,7 @@ The \textit{logicmodule}  service corresponds to the Logic Module. It is possibl
 In this way, the Logic Module will publish its service at: \texttt{localhost:11034}. In section \ref{sec:ClientConfigFiles} it is described how to define the proper configuration files for user's applications considering this info.
 
 \subsubsection{Data Service Backend - Java}
-The \textit{ds1java}  service corresponds to the Java container of the Data Service Backend. Every Data Service backend is tagged with a name so containers for all supported languages can be defined as part of the same backend. This is specially useful to, for instance, define a unique database shared by different execution environments. In this case, the Java container is configured to be part of the Data Service backend called \textit{DS1} as defined via the \texttt{DATASERVICE\_NAME} variable. Furthermore, it is also necessary to specify the port that will be used to handle Java execution requests: \texttt{DATASERVICE\_JAVA\_PORT\_TCP=6866}.
+The \textit{dsjava}  service corresponds to the Java container of the Data Service Backend. Every Data Service backend is tagged with a name so containers for all supported languages can be defined as part of the same backend. This is specially useful to, for instance, define a unique database shared by different execution environments. In this case, the Java container is configured to be part of the Data Service backend called \textit{DS1} as defined via the \texttt{DATASERVICE\_NAME} variable. Furthermore, it is also necessary to specify the port that will be used to handle Java execution requests: \texttt{DATASERVICE\_JAVA\_PORT\_TCP=2127}.
 
 Finally, we also need to specify the address of the Logic Module to enable this Java container to populate its service. To this end, we use the same variables and values as in the Logic Module service (\textit{logicmodule}): \texttt{LOGICMODULE\_HOST=logicmodule} and \texttt{LOGICMODULE\_PORT\_TCP=11034}.
 
@@ -133,13 +155,24 @@ The docker-compose file for the first node defining the Logic Module. Notice tha
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
-version: '2'
+version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule"
+    image: "bscdataclay/logicmodule:2.0"
+    ports:
+      - "11034:11034"
     environment:
       - LOGICMODULE_PORT_TCP=11034
-    network_mode: host
+      - LOGICMODULE_HOST=logicmodule
+      - DATACLAY_ADMIN_USER=admin
+      - DATACLAY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
  \end{lstlisting}
 \end{tBox}
 
@@ -151,27 +184,45 @@ Notice that the only variable that needs to be manually defined is \texttt{LOGIC
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
-version: '2'
+version: '3.4'
 services:
-  ds1java:
-    image: "bscdataclay/dsjava"
-    environment:
-      - DATASERVICE_NAME=DS1
-      - DATASERVICE_JAVA_PORT_TCP=6866
-      - LOGICMODULE_HOST= #TO BE EDITED
-      - LOGICMODULE_PORT_TCP=11034
-    network_mode: host
-
-  ds1pythonee:
-    image: "bscdataclay/dspython"
+ dsjava:
+    image: "bscdataclay/dsjava:2.0"
+    ports:
+      - "2127:2127"
     depends_on:
-      - "ds1java"
+      - logicmodule
     environment:
       - DATASERVICE_NAME=DS1
-      - DATASERVICE_PYTHON_PORT_TCP=6867
-      - LOGICMODULE_HOST= #TO BE EDITED
+      - DATASERVICE_JAVA_PORT_TCP=2127
       - LOGICMODULE_PORT_TCP=11034
-    network_mode: host
+      - LOGICMODULE_HOST=logicmodule
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+       
+  dspython:
+    image: "bscdataclay/dspython:2.0"
+    ports:
+      - "6867:6867"
+    depends_on:
+      - logicmodule
+      - dsjava
+    environment:
+      - DATASERVICE_NAME=DS1
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+      - DATASERVICE_PYTHON_PORT_TCP=6867
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
  \end{lstlisting}
 \end{tBox}
 
@@ -183,27 +234,45 @@ Finally, the only variable that needs to be manually defined is \texttt{LOGICMOD
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
-version: '2'
+version: '3.4'
 services:
-  ds2java:
-    image: "bscdataclay/dsjava"
-    environment:
-      - DATASERVICE_NAME=DS2
-      - DATASERVICE_JAVA_PORT_TCP=6866
-      - LOGICMODULE_HOST= #TO BE EDITED
-      - LOGICMODULE_PORT_TCP=11034
-    network_mode: host
-
-  ds2pythonee:
-    image: "bscdataclay/dspython"
+ dsjava2:
+    image: "bscdataclay/dsjava:2.0"
+    ports:
+      - "2128:2128"
     depends_on:
-      - "ds2java"
+      - logicmodule
     environment:
       - DATASERVICE_NAME=DS2
-      - DATASERVICE_PYTHON_PORT_TCP=6867
-      - LOGICMODULE_HOST= #TO BE EDITED
+      - DATASERVICE_JAVA_PORT_TCP=2128
       - LOGICMODULE_PORT_TCP=11034
-    network_mode: host
+      - LOGICMODULE_HOST=logicmodule
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+       
+  dspython2:
+    image: "bscdataclay/dspython:2.0"
+    ports:
+      - "6868:6868"
+    depends_on:
+      - logicmodule
+      - dsjava
+    environment:
+      - DATASERVICE_NAME=DS2
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+      - DATASERVICE_PYTHON_PORT_TCP=6868
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
  \end{lstlisting}
 \end{tBox}
 
@@ -212,54 +281,86 @@ services:
 \subsection{Enabling Python parallelism}
 \label{sec:PythonParallelism}
 
-In Section~\ref{sec:PythonConsiderationsExecutionEnvironment} we explain that the implementation details of the CPython Global Interpreter Lock forces that only one thread can execute Python code at once. However, and as introduced in Section~\ref{sec:DataService}, we can mitigate this problem by configuring dataClay to deploy multiple Python execution environments (backends) on a single node. The example below shows two Python execution environments that will load/store objects from the same Data Service \textit{DS1} ((\textit{ds1pythonee1, ds1pythonee2}).
+In Section~\ref{sec:PythonConsiderationsExecutionEnvironment} we explain that the implementation details of the CPython Global Interpreter Lock forces that only one thread can execute Python code at once. However, and as introduced in Section~\ref{sec:DataService}, we can mitigate this problem by configuring dataClay to deploy multiple Python execution environments (backends) on a single node. The example below shows two Python execution environments that will load/store objects from the same Data Service \textit{DS1} ((\textit{dspython1, dspython2}).
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
-version: '2' 
+version: '3.4'
 services:
-  ####################################
-  #  LOGIC MODULE                    #
-  ####################################
   logicmodule:
-    image: "bscdataclay/logicmodule"
+    image: "bscdataclay/logicmodule:2.0"
     ports:
       - "11034:11034"
     environment:
       - LOGICMODULE_PORT_TCP=11034
-
-  ####################################
-  #  BACKEND                         #
-  ####################################
-  ds1java:
-    image: "bscdataclay/dsjava"
-    depends_on:
-      - "logicmodule"
-    environment:
-      - DATASERVICE_NAME=DS1
-      - DATASERVICE_JAVA_PORT_TCP=6866
       - LOGICMODULE_HOST=logicmodule
-      - LOGICMODULE_PORT_TCP=11034
-
-  ds1pythonee1:
-    image: "bscdataclay/dspython"
+      - DATACLAY_ADMIN_USER=admin
+      - DATACLAY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+         
+  dsjava:
+    image: "bscdataclay/dsjava:2.0"
+    ports:
+      - "2127:2127"
     depends_on:
-      - "ds1java"
+      - logicmodule
     environment:
       - DATASERVICE_NAME=DS1
+      - DATASERVICE_JAVA_PORT_TCP=2127
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+       
+  dspython:
+    image: "bscdataclay/dspython:2.0"
+    ports:
+      - "6867:6867"
+    depends_on:
+      - logicmodule
+      - dsjava
+    environment:
+      - DATASERVICE_NAME=DS1
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
       - DATASERVICE_PYTHON_PORT_TCP=6867
-      - LOGICMODULE_HOST=logicmodule
-      - LOGICMODULE_PORT_TCP=11034
-      
-  ds1pythonee2:
-    image: "bscdataclay/dspython"
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
+       
+  dspython2:
+    image: "bscdataclay/dspython:2.0"
+    ports:
+      - "6868:6868"
     depends_on:
-      - "ds1java"
+      - logicmodule
+      - dsjava
     environment:
       - DATASERVICE_NAME=DS1
-      - DATASERVICE_PYTHON_PORT_TCP=6867
-      - LOGICMODULE_HOST=logicmodule
       - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+      - DATASERVICE_PYTHON_PORT_TCP=6868
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
+       
  \end{lstlisting}
 \end{tBox}
 
@@ -276,46 +377,62 @@ In the server-side the default path is the same, but following previous examples
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
-version: '2' 
+version: '3.4'
 services:
-  ####################################
-  #  LOGIC MODULE                    #
-  ####################################
   logicmodule:
-    image: "bscdataclay/logicmodule"
+    image: "bscdataclay/logicmodule:2.0"
     ports:
       - "11034:11034"
     environment:
       - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+      - DATACLAY_ADMIN_USER=admin
+      - DATACLAY_ADMIN_PASSWORD=admin
     volumes:
-      - ./cfgfiles/global.properties:/usr/src/dataclay/cfgfiles/global.properties
-
-  ####################################
-  #  BACKEND                         #
-  ####################################
-  ds1java:
-    image: "bscdataclay/dsjava"
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+         
+  dsjava:
+    image: "bscdataclay/dsjava:2.0"
+    ports:
+      - "2127:2127"
     depends_on:
-      - "logicmodule"
+      - logicmodule
     environment:
       - DATASERVICE_NAME=DS1
-      - DATASERVICE_JAVA_PORT_TCP=6866
-      - LOGICMODULE_HOST=logicmodule
+      - DATASERVICE_JAVA_PORT_TCP=2127
       - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
     volumes:
-      - ./cfgfiles/global.properties:/usr/src/dataclay/cfgfiles/global.properties
-
-  ds1pythonee:
-    image: "bscdataclay/dspython"
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+       
+  dspython:
+    image: "bscdataclay/dspython:2.0"
+    ports:
+      - "6867:6867"
     depends_on:
-      - "ds1java"
+      - logicmodule
+      - dsjava
     environment:
       - DATASERVICE_NAME=DS1
-      - DATASERVICE_PYTHON_PORT_TCP=6867
+      - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
-      - LOGICMODULE_PORT_TCP=11034     
+      - DATASERVICE_PYTHON_PORT_TCP=6867
     volumes:
-      - ./cfgfiles/global.properties:/usr/src/dataclay/cfgfiles/global.properties
+      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
  \end{lstlisting}
 \end{tBox}
 

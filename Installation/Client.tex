@@ -62,3 +62,119 @@ Here is an example:
 \end{tBox}
 
 As you can see, it only requires two properties to be defined: \texttt{HOST} and \texttt{TCPPORT}; comprising the full address to be resolved in order to initialize a session with dataClay from your application.
+
+\section{Tracing}
+
+dataClay provides a built-in tracing system to generate post-execution tracefiles of the applications’ execution. 
+This is achieved using Extrae (\href {https://tools.bsc.es/extrae} {https://tools.bsc.es/extrae}).
+
+For each service, Extrae keeps track of the events in an intermediate format file (with .mpit extension). At the end of the execution, all intermediate
+files are gathered and merged by Extrae’s in order to create the final
+tracefile, a Paraver format file (.prv) (\href {https://tools.bsc.es/paraver} {https://tools.bsc.es/paraver})
+
+In order to enable Extrae tracing in dataClay, the application must activate it. We must write \texttt{Tracing=True} in the application's session.properties file:
+
+\begin{tBox}
+ \begin{bash}
+  Account=MyAccount
+  Password=MyPassword
+  StubsClasspath=/home/me/myapp/stubs
+  DataSetForStore=MyDataset
+  DataSets=MyDataset,OtherDataSet
+  LocalBackend=DS1
+  Tracing=True
+ \end{bash}
+\end{tBox}
+
+Also, we need to modify dataClay's \texttt{docker-compose.yml} to add \texttt{--tracing} command: 
+
+\begin{tBox}
+ \begin{lstlisting}[language=docker-compose-2, frame=none]
+version: '3.4'
+services:
+  logicmodule:
+    image: "bscdataclay/logicmodule:2.0"
+    command: --tracing
+    ports:
+      - "11034:11034"
+    environment:
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+      - DATACLAY_ADMIN_USER=admin
+      - DATACLAY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+         
+  dsjava:
+    image: "bscdataclay/dsjava:2.0"
+    command: --tracing
+    ports:
+      - "2127:2127"
+    depends_on:
+      - logicmodule
+    environment:
+      - DATASERVICE_NAME=DS1
+      - DATASERVICE_JAVA_PORT_TCP=2127
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+       
+  dspython:
+    image: "bscdataclay/dspython:2.0"
+    command: --tracing
+    depends_on:
+      - logicmodule
+      - dsjava
+    environment:
+      - DATASERVICE_NAME=DS1
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
+ \end{lstlisting}
+\end{tBox}
+
+Now we can start dataClay and run our application with tracing. Once finished, traces will be generated and stored in \texttt{`pwd`/traces} directory. 
+Those traces are ready to be used by Paraver tool (\href {https://tools.bsc.es/paraver} {https://tools.bsc.es/paraver})
+
+\subsection{COMPSs}
+
+dataClay extrae traces can be used among with COMPSs (\href {https://compss.bsc.es} {https://compss.bsc.es}) 
+
+Each node/service has an Extrae Task ID defined. Task ID is used to define different threads and lines in Paraver visualization. It means that in COMPSs you will have defined task IDs for master and workers (task ID = 0 for master, task ID = 1 for first worker, task ID = 2 for second worker, \ldots)
+
+dataClay needs to use the first available task ID which is \texttt{task ID = COMPSs workers + 1}
+
+Modify session.properties file and add the option \texttt{ExtraeStartingTaskID=#taskID} to define the first available task ID for dataClay
+
+\begin{tBox}
+ \begin{bash}
+  Account=MyAccount
+  Password=MyPassword
+  StubsClasspath=/home/me/myapp/stubs
+  DataSetForStore=MyDataset
+  DataSets=MyDataset,OtherDataSet
+  LocalBackend=DS1
+  Tracing=True
+  ExtraeStartingTaskID=2
+ \end{bash}
+\end{tBox}
+
+Once the application is finished, traces will be generated and stored in \texttt{`pwd`/traces} directory. 
+
+Supported/Tested versions: Extrae 3.6.1 && COMPSs 2.4
