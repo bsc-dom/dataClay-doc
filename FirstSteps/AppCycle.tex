@@ -94,25 +94,25 @@ PORT=11034
 \end{bash}
 \end{tBox}
 
-Now you can start using a simple dataClay tool\index{dClayTool} intended for management operations\index{management operations}. In this way, our class models can be registered, datasets with specific access rights can be defined, and our application can interact transparently with dataClay when using downloaded stubs (more details about the tool are explained in Chapter~\ref{sec:dClayTool}).
+Now you can start using a simple dataClay command line utility intended for management operations\index{management operations}. In this way, our class models can be registered, datasets with specific access rights can be defined, and our application can interact transparently with dataClay when using downloaded stubs (more details about the command line utility are explained in Chapter~\ref{sec:dClayTool}).
 
 \begin{minipage}{\linewidth}
 \begin{tBox}
 \begin{bash}
  # To begin with, create an account
- dClayTool.sh NewAccount Alice AlicePass
+dataclaycmd NewAccount Alice AlicePass
  
  # Create a dataset (with granted access) 
  # to register stored objects on it
- dClayTool.sh NewDataContract Alice AlicePass myDataset
+dataclaycmd NewDataContract Alice AlicePass myDataset
  
  # Register the class model in a certain namespace
  # Assuming Person.class or person.py is in ./modelClassDirPath
- dClayTool.sh NewModel Alice AlicePass myNamespace ./modelClassDirPath \
+dataclaycmd NewModel Alice AlicePass myNamespace ./modelClassDirPath \
   <java | python>
  
  # Download the corresponding stubs for your application
- dClayTool.sh GetStubs Alice AlicePass myNamespace stubsDirPath
+dataclaycmd GetStubs Alice AlicePass myNamespace stubsDirPath
 \end{bash}
 \end{tBox}
 \end{minipage}

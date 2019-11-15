@@ -23,7 +23,7 @@ The architecture of dataClay is composed by two main components: the Logic Modul
 \subsection{Logic Module}\index{logic module}
 The Logic Module is a unique centralized component that keeps track of every object metadata such as: its unique identifier, (replica) locations, and the dataset it is associated with. 
 
-In addition, the Logic Module is in charge of management info, comprising: accounting, namespaces and datasets, permissions (contracts) and registered class models. That is, the information that can be registered in the system using the \textit{dClayTool} as shown in section \ref{sec:dClayTool}.
+In addition, the Logic Module is in charge of management info, comprising: accounting, namespaces and datasets, permissions (contracts) and registered class models. That is, the information that can be registered in the system using the dataClay command line utility as shown in section \ref{sec:dClayTool}.
 
 Furthermore, the Logic Module is the entry point for any user application, which must authenticate in the system to create a working session and gain permission to interact with the components of the Data Service.
 
@@ -33,19 +33,19 @@ The Data Service is deployed as a set of multiple backends. Any of these backend
 
 In order to enable \textit{Execution Environments} to handle any kind of object and execution request, the Logic Module is in charge to deploy registered classes to every Data Service backend. In this way, every backend can load stored objects as class instances and execute class methods on them corresponding to upcoming execution requests.
 
-This means that when an application initializes a session with dataClay, it first establishes a connection with the Logic Module and obtains information about the available Data Service backends. At this point, the application is enabled to interact with the Data Service backends through stub classes (retrieved with the \textit{dClayTool}, section \ref{sec:dClayTool}) by submitting execution requests directly to them.
+This means that when an application initializes a session with dataClay, it first establishes a connection with the Logic Module and obtains information about the available Data Service backends. At this point, the application is enabled to interact with the Data Service backends through stub classes (retrieved with the dataClay command line utility, section \ref{sec:dClayTool}) by submitting execution requests directly to them.
 
 
 
 \section{Deployment with containers \index{docker}}
 
-Keeping in mind the dataClay architecture, hereafter we show how to deploy a dataClay installation based on Docker \footnote{\url{https://www.docker.com}} containers.
+Keeping in mind the dataClay architecture, hereafter we show how to deploy a dataClay installation based on Docker containers.
 
 A container image is a lightweight, stand-alone, executable package of a piece of software that includes everything needed to run it: code, runtime, system tools, system libraries, settings. 
 
 In this way, we populate different Docker images corresponding to the main components of the dataClay architecture: the Logic Module and the Data Service. The latter actually comprises one image for each supported language since the corresponding execution requests are handled by separated containers (one per language). 
 
-In order to retrieve these images and orchestrate dataClay services properly, following sections show different scenarios based on the standard \textit{docker-compose}\index{docker-compose} \footnote{\url{https://docs.docker.com/compose/}} tools.
+In order to retrieve these images and orchestrate dataClay services properly, following sections show different scenarios based on the standard \textit{docker-compose}\index{docker-compose} tools.
 
 \subsection{Single node installation}
 \label{sec:SingleNodeInstall}
