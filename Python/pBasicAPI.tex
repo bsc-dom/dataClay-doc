@@ -715,6 +715,10 @@ Let us assume that we have our class Person:
 \begin{tBox}
 \begin{python}
 class Person(DataClayObject):
+     """
+     @ClassField name str
+     @ClassField age int
+     """
     @dclayMethod(name="str", age="int")
     def __init__(self, name, age):
         self.name = name
@@ -747,22 +751,20 @@ if __name__ == "__main__":
 
 With no consistency policies, the printed message would show an unpredictable age for Alice, since getters and setters are executed in a random backend among the locations of the object.
 
-In order to overcome this problem, dataClay provides a mechanism to define synchronization policies at user-level. In particular, class developers are allowed to define three different annotations to customize the behavior of attribute updates:
+In order to overcome this problem, dataClay provides a mechanism to define synchronization policies at user-level. In particular, class developers are allowed to define an annotation to customize the behavior of attribute updates:
 
 \begin{tBox}
 \begin{python}
-@dclayReplication(inMaster='boolean')
-@dclayReplication(beforeUpdate='method')
-@dclayReplication(afterUpdate='method')
+@dclayReplication(inMaster='...', beforeUpdate='...', afterUpdate='...')
 @ClassField name type
 \end{python}
 \end{tBox}
 
 The \textit{inMaster} annotation forces the update operation to be handled from the master location if set to true. The default master location of an object is the backend where the object was originally stored.
 
-On the other hand, \textit{beforeUpdate} and \textit{afterUpdate} define extra behavior to be executed before or after the update operation. The \textit{method} argument specifies an operation signature of a method, which can belong to the same class or can be inherited from a mixin. In this way, the developer is allowed to define an action to be triggered before the update operation, and an action to be taken after the update operation.
+On the other hand, \textit{beforeUpdate} and \textit{afterUpdate} define extra behavior to be executed before or after the update operation. Their value corresponds to an operation signature of a method, which can belong to the same class or can be inherited from a mixin. In this way, the developer can define an action to be triggered before the update operation, and/or an action to be taken after the update operation.
 
-The \textit{ClassField} annotation allows the user to define which fields of the class have to apply the defined behavior.
+The \textit{ClassField} annotation defines which fields of the class have to apply the defined behavior.
 
 Let us resume our previous example. Assuming that the \textit{name} attribute is never modified (e.g. private setter), we want, however, that every time the \textit{age} is updated the change is propagated to all the replicas. Empowering Person class with the proper annotations, we can intervene updates of attribute \textit{age} to perform the update synchronization, which has been implemented in the class \textit{SequentialConsistencyMixin}, extended by \textit{Person}:
 
@@ -789,10 +791,9 @@ class SequentialConsistencyMixin(object):
 
     @dclayMethod(attribute="str", value="anything")
     def synchronize(self, attribute, value):
-        from dataclay.DataClayObjProperties import DCLAY_SETTER_PREFIX
         for exeenv_id in self.get_all_locations().keys():
             if exeenv_id != master_location:
-                self.run_remote(exeenv_id, DCLAY_SETTER_PREFIX + attribute, value)
+                self.run_remote(exeenv_id, attribute, value)
 
 \end{python}
 \end{tBox}
@@ -806,7 +807,7 @@ Some considerations merit the attention of model developers:
     \item The method whose name is specified in the annotations is implemented in the model class or a superclass and receives the attribute name to be set and its new value.
 \end{itemize}
 
-For convenience,  the implementation of the \textit{SequentialConsistency} class in the example can be used by including the import:
+For convenience,  the implementation of the \textit{SequentialConsistencyMixin} class in the example can be used by including the import:
 
 \colorbox{basecolor!20}{\texttt{from dataClay.contrib.synchronization import SequentialConsistencyMixin}}
 
