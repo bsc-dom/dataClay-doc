@@ -3,7 +3,7 @@
 \chapter{dataClay tool}\index{dataClay tool}
 \label{sec:dClayTool}
 
-In this chapter we present \textit{dClayTool}, the dataClay tool intended to be used for management operations such as accounting, class registering, or contract creation. It is very important to understand that this tool offers a friendly (and quite limited) version of the management API that should be enough for most dataClay users. 
+In this chapter we present \textit{dClayTool}, the dataClay tool intended to be used for management operations such as accounting, class registering, or contract creation. The methods of the \textit{dClayTool} can be executed through the \textit{run} command of Docker or Singularity. Examples can be found in \href{https://github.com/bsc-dom/dataclay-examples}{https://github.com/bsc-dom/dataclay-examples} and \href{https://github.com/bsc-dom/dataclay-demos}{https://github.com/bsc-dom/dataclay-demos}.
 
 \section{Accounts}\index{account}
 
@@ -12,7 +12,7 @@ In this section we present the options offered by the dataClay tool in order to 
 % ------- New account ---------
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{NewAccount} newaccount\_name newaccount\_pass}
+\texttt{\CALL{NewAccount} newaccount\_name newaccount\_pass}
 \LINE
 
 {\it Description:}
@@ -38,7 +38,7 @@ In this section we present the options offered by the dataClay tool in order to 
 % ------- New Model ---------
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{NewModel} \newline user\_name user\_pass namespace\_name class\_path language 
+\texttt{\CALL{NewModel} \newline user\_name user\_pass namespace\_name class\_path language 
 \PREFETCH{
 \newline [-{}-prefetch on src\_path lib\_path | rop fetch\_depth src\_path lib\_path]}}
 \LINE
@@ -85,7 +85,7 @@ In this section we present the options offered by the dataClay tool in order to 
 % ------- Get Stubs ---------
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{GetStubs} \newline user\_name user\_pass namespace\_name stubs\_path}
+\texttt{\CALL{GetStubs} \newline user\_name user\_pass namespace\_name stubs\_path}
 \LINE
 
 {\it Description:}
@@ -108,7 +108,7 @@ In this section we present the options offered by the dataClay tool in order to 
 % ------- New Namespace ---------
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{NewNamespace} \newline user\_name user\_pass namespace\_name class\_path language}
+\texttt{\CALL{NewNamespace} \newline user\_name user\_pass namespace\_name class\_path language}
 \LINE
 
 {\it Description:}
@@ -131,7 +131,7 @@ In this section we present the options offered by the dataClay tool in order to 
 % ------- Get Namespaces ---------
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{GetNamespaces} \newline user\_name user\_pass}
+\texttt{\CALL{GetNamespaces} \newline user\_name user\_pass}
 \LINE
 
 {\it Description:}
@@ -156,7 +156,7 @@ In this section we present the options offered by the dataClay tool in order to 
 In this section we present the options offered by the dataClay tool in order to manage datasets and data contracts.
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{NewDataContract} \newline user\_name user\_pass dataset\_name beneficiary\_name}
+\texttt{\CALL{NewDataContract} \newline user\_name user\_pass dataset\_name beneficiary\_name}
 \LINE
 
 {\it Description:}
@@ -182,7 +182,7 @@ In this section we present the options offered by the dataClay tool in order to 
 
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{NewDataset} \newline user\_name user\_pass dataset\_name dataset\_type}
+\texttt{\CALL{NewDataset} \newline user\_name user\_pass dataset\_name dataset\_type}
 \LINE
 
 {\it Description:}
@@ -205,7 +205,7 @@ In this section we present the options offered by the dataClay tool in order to 
 \end{dBox}
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{GetDatasets} \newline user\_name user\_pass}
+\texttt{\CALL{GetDatasets} \newline user\_name user\_pass}
 \LINE
 
 {\it Description:}
@@ -231,7 +231,7 @@ In this section we present other utilities that can be used to retrieve informat
 % ------- GetBackends ---------
 
 \begin{dBox}
-\texttt{dClayTool.sh \CALL{GetBackends} user\_name user\_pass language}
+\texttt{\CALL{GetBackends} user\_name user\_pass language}
 \LINE
 
 {\it Description:}
@@ -249,7 +249,3 @@ In this section we present other utilities that can be used to retrieve informat
 \end{itemize}
 
 \end{dBox}
-
-%\FEDERATION{
-%\input{Tool/dClayTool_federation.tex}
-%}
