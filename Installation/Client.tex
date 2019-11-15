@@ -7,7 +7,18 @@
 
 In order to connect your applications with dataClay services you need a client library for your preferred programming language.
 
-If you are developing a Java application you can obtain the library following instructions in \ref{sec:FullDemo} (downloading our zip file as exposed in Section~\ref{sec:DownloadZIP} or following instructions for POM-based projects in Section~\ref{sec:POMbasedProjects}).
+If you are developing a Java application, you can add the following dependency into your pom file to install the Java client library:
+
+\begin{tBox}
+\footnotesize
+ \begin{bash}
+  <dependency>
+    <groupId>es.bsc.dataclay</groupId>
+    <artifactId>dataclay</artifactId>
+    <version>2.0</version>
+  </dependency>
+ \end{bash}
+\end{tBox}
 
 In case you are developing a Python application, you can easily install the Python module with \textit{pip} command:
 
@@ -65,14 +76,14 @@ As you can see, it only requires two properties to be defined: \texttt{HOST} and
 
 \section{Tracing}
 
-dataClay provides a built-in tracing system to generate post-execution tracefiles of the applications’ execution. 
+dataClay provides a built-in tracing system to generate tracefiles of an application execution. 
 This is achieved using Extrae (\href {https://tools.bsc.es/extrae} {https://tools.bsc.es/extrae}).
 
-For each service, Extrae keeps track of the events in an intermediate format file (with .mpit extension). At the end of the execution, all intermediate
-files are gathered and merged by Extrae’s in order to create the final
-tracefile, a Paraver format file (.prv) (\href {https://tools.bsc.es/paraver} {https://tools.bsc.es/paraver})
+For each service, Extrae keeps track of the events in an intermediate file (with .mpit extension). At the end of the execution, all intermediate
+files are gathered and merged by Extrae in order to create the final
+trace, encoded in a Paraver file (.prv) (\href {https://tools.bsc.es/paraver} {https://tools.bsc.es/paraver})
 
-In order to enable Extrae tracing in dataClay, the application must activate it. We must write \texttt{Tracing=True} in the application's session.properties file:
+In order to enable Extrae tracing in dataClay, the application must activate it. We must write \texttt{Tracing=True} in the  session.properties file:
 
 \begin{tBox}
  \begin{bash}
@@ -86,7 +97,7 @@ In order to enable Extrae tracing in dataClay, the application must activate it.
  \end{bash}
 \end{tBox}
 
-Also, we need to modify dataClay's \texttt{docker-compose.yml} to add \texttt{--tracing} command: 
+Additionally, we need to modify dataClay's \texttt{docker-compose.yml} to add \texttt{--tracing} command: 
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
@@ -150,15 +161,11 @@ services:
 \end{tBox}
 
 Now we can start dataClay and run our application with tracing. Once finished, traces will be generated and stored in \texttt{`pwd`/traces} directory. 
-Those traces are ready to be used by Paraver tool (\href {https://tools.bsc.es/paraver} {https://tools.bsc.es/paraver})
+Those traces are ready to be used by Paraver (\href {https://tools.bsc.es/paraver} {https://tools.bsc.es/paraver})
 
-dataClay extrae traces can be used together with COMPSs (\href {https://compss.bsc.es} {https://compss.bsc.es}) 
+dataClay Extrae traces can be used together with COMPSs (\href {https://compss.bsc.es} {https://compss.bsc.es}). Each node/service has an Extrae task ID defined. This task ID is used to define different threads and lines in Paraver visualization. It means that in COMPSs you will have defined task IDs for master and workers (task ID = 0 for master, task ID = 1 for first worker, task ID = 2 for second worker, \ldots).
 
-Each node/service has an Extrae Task ID defined. Task ID is used to define different threads and lines in Paraver visualization. It means that in COMPSs you will have defined task IDs for master and workers (task ID = 0 for master, task ID = 1 for first worker, task ID = 2 for second worker, \ldots)
-
-dataClay needs to use the first available task ID which is \texttt{task ID = COMPSs workers + 1}
-
-Modify session.properties file and add the option \texttt{ExtraeStartingTaskID=taskID} to define the first available task ID for dataClay
+dataClay needs to use the first available task ID which is \texttt{task ID = COMPSs workers + 1}. The session.properties file must be modified by adding the option \texttt{ExtraeStartingTaskID=taskID} with the appropriate \textit{taskID}.
 
 \begin{tBox}
  \begin{bash}
@@ -169,26 +176,23 @@ Modify session.properties file and add the option \texttt{ExtraeStartingTaskID=t
   DataSets=MyDataset,OtherDataSet
   LocalBackend=DS1
   Tracing=True
-  ExtraeStartingTaskID=2
+  ExtraeStartingTaskID=9
  \end{bash}
 \end{tBox}
 
 Once the application is finished, traces will be generated and stored in \texttt{`pwd`/traces} directory. 
 
-Supported/Tested versions: Extrae 3.6.1 and COMPSs 2.4
+The versions currently supported are Extrae 3.6.1 and COMPSs 2.4.
 
 \section{Federation with secure communications}
 
 In this section we explain how to secure dataClay communications between different dataClay instances.
 
-In a federated environment, different dataClays are communicating to each other via LogicModule service. 
+In a federated environment, different dataClays are communicating to each other via the LogicModule service. 
 
-Current implementation of dataClay does not allow you to specify certificates in server-side but only client certificates. 
-Thus, we use a Traefik reverse-proxy \href {https://docs.traefik.io/} {https://docs.traefik.io/} 
-to check client certificates and also to not publish dataClay ports. 
+The current implementation of dataClay provides support to client certificates. Thus, we use a Traefik reverse-proxy \href {https://docs.traefik.io/} {https://docs.traefik.io/} to check client certificates, and also to avoid publishing dataClay ports. 
 
-An example of the \textit{docker-compose.yml} file with reverse-proxy:
-
+An example of the \textit{docker-compose.yml} file with reverse-proxy is as follows:
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
@@ -264,7 +268,7 @@ services:
  \end{lstlisting}
 \end{tBox}
 
-With following \textit{traefik.toml} example:
+With the following \textit{traefik.toml} example:
 
 \begin{tBox}
  \begin{lstlisting}[language=docker-compose-2, frame=none]
@@ -294,9 +298,9 @@ defaultEntryPoints = ["http", "https"]
  \end{lstlisting}
 \end{tBox}
 
-Note that ports are not published in \textit{docker-compose.yml} and we configure Traefik by adding labels to logicmodule service.
+Note that ports are not published in \textit{docker-compose.yml} and we configure Traefik by adding labels to the \textit{logicmodule} service.
 
-Finally, we need to configure our application to use the certificates. For that we have the following \textit{global.properties} options:
+Finally, we need to configure our application to use the certificates. For this purpose we have the following \textit{global.properties} options:
 
 \begin{table}[H]
 \footnotesize
@@ -319,7 +323,7 @@ Finally, we need to configure our application to use the certificates. For that 
 \end{tBox}
 \end{table}
 
-An example of the \textit{global.properties} file with TLS could be
+An example of the \textit{global.properties} file with TLS is as follows:
 
 \begin{tBox}
  \begin{bash}
