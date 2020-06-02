@@ -1,0 +1,156 @@
+\chapter{Java API security}
+\label{sec:JavaAPI security}
+
+\subsection{dataClay federation with secure communications}
+
+In this section we explain how to secure dataClay communications between different dataClay instances.
+
+In a federated environment, different dataClays are communicating to each other via LogicModule service. 
+
+Current implementation of dataClay does not allow you to specify certificates in server-side but only client certificates. 
+Thus, we use a Traefik reverse-proxy \href {https://docs.traefik.io/} {https://docs.traefik.io/} 
+to check client certificates and also to not publish dataClay ports. 
+
+An example of the \textit{docker-compose.yml} file with reverse-proxy:
+
+
+\begin{tBox}
+ \begin{lstlisting}[language=docker-compose-2, frame=none]
+version: '3.4'
+services:
+
+  proxy:
+    image: traefik:v1.7.17
+    restart: unless-stopped
+    command: --docker --docker.exposedByDefault=false
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /home/docker/common/dataclay/traefik.toml:/traefik.toml
+      - /home/docker/certs:/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+      
+  logicmodule:
+    image: "bscdataclay/logicmodule:2.0"
+    environment:
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+      - DATACLAY_ADMIN_USER=admin
+      - DATACLAY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=logicmodule"
+      - "traefik.frontend.rule=Headers: service-alias,logicmodule"
+      - "traefik.port=11034"
+      - "traefik.protocol=h2c"
+          
+  dsjava:
+    image: "bscdataclay/dsjava:2.0"
+    depends_on:
+      - logicmodule
+    environment:
+      - DATASERVICE_NAME=DS1
+      - DATASERVICE_JAVA_PORT_TCP=2127
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
+      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
+       
+  dspython:
+    image: "bscdataclay/dspython:2.0"
+    depends_on:
+      - logicmodule
+      - dsjava
+    environment:
+      - DATASERVICE_NAME=DS1
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+      - DATASERVICE_PYTHON_PORT_TCP=6867
+    volumes:
+      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
+    healthcheck:
+       interval: 5s
+       retries: 10
+       test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
+ \end{lstlisting}
+\end{tBox}
+
+With following \textit{traefik.toml} example:
+
+\begin{tBox}
+ \begin{lstlisting}[language=docker-compose-2, frame=none]
+debug = false
+defaultEntryPoints = ["http", "https"]
+[entryPoints]
+    [entryPoints.http]
+    address = ":80"
+        [entryPoints.http.redirect]
+        entryPoint = "https"
+
+   [entryPoints.https]
+     address = ":443"
+   [entryPoints.https.tls]
+     [entryPoints.https.tls.clientCA]
+     files = ["/ssl/dataclay-ca.crt"]
+     optional = false
+
+	 [entryPoints.https.tls.defaultCertificate]
+     certFile = "/ssl/dataclay-agent.crt"
+     keyFile  = "/ssl/dataclay-agent.pem"
+     
+     # For secure connection on frontend.local
+     [[entryPoints.https.tls.certificates]]
+     certFile = "/ssl/dataclay-agent.crt"
+     keyFile  = "/ssl/dataclay-agent.pem"
+ \end{lstlisting}
+\end{tBox}
+
+Note that ports are not published in \textit{docker-compose.yml} and we configure Traefik by adding labels to logicmodule service.
+
+Finally, we need to configure our application to use the certificates. For that we have the following \textit{global.properties} options:
+
+\begin{table}[H]
+\footnotesize
+\begin{tBox}
+\centering
+\begin{tabular}{p{57mm} | p{27mm} |  >{\raggedright\arraybackslash}p{50mm}}
+\textbf{property} & \textbf{default value} & \textbf{description} \\
+\hline
+\verb LM_SERVICE_ALIAS_HEADERMSG & logicmodule & Add to the message the header service-alias (used to filter in traefik) . \\
+\hline
+\verb SSL_TARGET_AUTHORITY & proxy  & Override target authority (usually traefik service name). \\
+\hline
+\verb SSL_CLIENT_TRUSTED_CERTIFICATES & None & Path to CA certificate. \\
+\hline
+\verb SSL_CLIENT_CERTIFICATE & None & Path to Client certificate. \\
+\hline
+\verb SSL_CLIENT_KEY & None & Path to Client key. \\
+\end{tabular}
+\label{table:Security}
+\end{tBox}
+\end{table}
+
+An example of the \textit{global.properties} file with TLS could be
+
+\begin{tBox}
+ \begin{bash}
+LM_SERVICE_ALIAS_HEADERMSG=logicmodule
+SSL_TARGET_AUTHORITY=proxy 
+SSL_CLIENT_TRUSTED_CERTIFICATES=/usr/src/demo/app/certs/dataclay-ca.crt
+SSL_CLIENT_CERTIFICATE=/usr/src/demo/app/certs/dataclay-agent.crt
+SSL_CLIENT_KEY=/usr/src/demo/app/certs/dataclay-agent.pem
+ \end{bash}
+\end{tBox}

@@ -245,5 +245,7 @@ TSWLatexianTemp*
 # generated if using elsarticle.cls
 *.spl
 /tmp/
+
+/.texlipse
 /.project
 /document.pdf

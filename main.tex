@@ -90,10 +90,15 @@
 
 \newcommand{\FEDERATION}[1]
 {
-%#1
+#1
 }
 
 \newcommand{\FILTERING}[1]
+{
+%#1
+}
+
+\newcommand{\PREFETCH}[1]
 {
 %#1
 }
@@ -120,7 +125,7 @@
 
 \centering\includegraphics[width=8cm]{dClaylogo.jpg}
 
-{\Large version 1.0}\\[10pt] % version
+{\Large version 2.0}\\[10pt] % version
 {\huge Barcelona Supercomputing Center}\\[8pt] % Author name
 {\Large support-dataclay@bsc.es}}}; % Author email
 \end{tikzpicture}
@@ -177,7 +182,7 @@
 %  \input{Python/pStorageAPI.tex}
 %  \input{Python/pUndocumented.tex}
 
-\part{dClayTool: dataClay management tool}
+\part{dataClay management utility}
   \input{Tool/dClayTool.tex}
 
 %\part{Collections}
@@ -189,7 +194,6 @@
 \label{part:installation}
   \input{Installation/System.tex}
   \input{Installation/Client.tex}
-  \input{Installation/FullTest.tex}
 
 \part{Bibliography and index}
 

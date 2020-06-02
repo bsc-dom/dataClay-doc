@@ -2,31 +2,33 @@
 \chapter*{Release history}
 
 \begin{itemize}
-\item[] \textbf{2018, November : Official Release from version 1.0 of the code}\newline
+\item[] \textbf{2019, November : Release version 2.0}\newline
     \begin{itemize}
     \item[] \textbf{New features}
         \begin{itemize}
-            \item[] Object store GET(CLONE)/PUT/UPDATE operations
-            \item[] Support to Python 3
-            \item[] Support to SQLite underlying storage
-            \item[] Support to having N Python execution environments on the same backend
-            \item[] Building of Singularity images from our Docker images
-            \item[] Java dependency resolution for POM-based projects
+            \item[] Support for Java 11
+            \item[] Federation of dataClay instances
+            \item[] Support for ARM 32-bit architecture
+            \item[] Configurable reverse proxy in communications between dataClay instances
+            \item[] Secure TLS client-server communications
+            \item[] Mixins in Python
+            \item[] Support to AspectJ
+            \item[] Configurable tracing
         \end{itemize}
-    \item[] \textbf{Bug fixing}
+    \item[] \textbf{Improvements}
         \begin{itemize}
-            \item[] Fixed inconsistencies on master location management for replication
-            \item[] Fixed errors on language built-in exceptions handling
+            \item[] Bootstrap performance
+            \item[] Performance in inter-service communications
+            \item[] Management of in-memory objects in memory intensive Python applications
+            \item[] Metadata caching mechanisms in the Python Execution Environment
+            \item[] Docker infrastructure and Docker images: health check, minimization of ports exposed, reduced container size 
+            \item[] Easier deployment
+            \item[] New deployable demos and updated examples
+            \item[] Bug fixes
         \end{itemize}
-    \item[] \textbf{Upgrades}
+    \item[] \textbf{Deprecation notice:}
         \begin{itemize}
-            \item[] Upgraded downloadable ZIP with extra examples for new features
-            \item[] Upgraded public Python libraries in PyPI
-            \item[] Upgraded Java libraries in the downloadable ZIP
-            \item[] Upgraded Docker images\newline
+            \item[] dataClay 2.0 source code is the last release supporting Python 2. Deployment and services are provided for Python 3.
         \end{itemize}
     \end{itemize}
-    
-\item[] \textbf{2018, July : Pre-release from version 0.9 of the code}
-
 \end{itemize}

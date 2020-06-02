@@ -7,7 +7,7 @@ This chapter presents the Python API that can be used by applications divided in
 
 Notice that current supported Python versions are 2 and 3, but all the backends in the system, as well as the clients, should use the same Python major version (Section~\ref{sec:SystemInstall} describes further details about this).
 
-\section{Global API}
+\section{dataClay API}
 \label{sec:PythonGlobalAPI}
 
 In this section, we present a set of calls that are not linked to any given object, but are general to the system.
@@ -91,7 +91,7 @@ In Python, they can be called through \textit{dataclay.api} with the proper impo
 \end{dBox}
 
 \begin{tBox}
-\textcolor{basecolor} {\bf Example: Using global api - distributed people}
+\textcolor{basecolor} {\bf Example: Using dataClay api - distributed people}
 \begin{python}
 from itertools import cycle
 from dataclay.api import finish, init, get_backends
@@ -570,7 +570,7 @@ assert new_person.get_location() == api.LOCAL
 \begin{itemize}
     \item Creates a replica of the current object.
     
-    It is very important to realize that dataClay does not take care of replica synchronization. Details on how such synchronization can be achieved are described in Section~\ref{sec:PythonReplication}.
+    It is important to notice that dataClay does not take care of replica synchronization. Details on how such synchronization can be achieved are described in Section~\ref{sec:PythonReplication}.
     \newline
     \newline
     Notice that the replication of an object includes the replication of its subobjects (references) as the default behavior (i.e. recursive is True by default). Therefore, some objects (including current object) might be already present in the destination backend. These objects will be ignored from replication, since a backend cannot have two replicas of the same object. But it is ensured that, after a correct execution of this method, a full copy of the current object (and all its subobjects if recursive) is present in the returned backend (same as backend\_ID if user specifies it).
@@ -646,12 +646,6 @@ p1.new_replica(api.LOCAL)
 
 \end{dBox}
 
-\FEDERATION{
-\input{Python/pFederationAPI.tex}
-}
-
-
-
 % ------- moveObject ---------
 
 %\begin{dBox}
@@ -710,17 +704,21 @@ On the other hand, a Global Garbage Collector keeps track of global reference co
 \section{Replica management}\index{replica management}
 \label{sec:PythonReplication}
 
-Given that each object or piece of data may potentially need a different consistency model, {\bf dataClay will not synchronize objects}. On the other hand, it will offer mechanisms for the model developer to include it as part of the model in an easy way, and how to be able to import the consistency model form another class already defined.
+Given that each object or piece of data may potentially need a different consistency model, dataClay will not synchronize objects. On the other hand, it will offer mechanisms for the model developer to include it as part of the model in an easy way, and how to be able to import the consistency model form another class already defined.
 
 The first way to guarantee the consistency level required by a replicated object is to add the needed code in all setters/getter of the class. Although this is a feasible option is quite impractical if we need to add this code to all classes we want to build. Fir this reason, dataClay also offers a mechanism to add arbitrary code ( fom a static class) to be executed before or after a given method. This mechanism, explained in detail in this section, will enable programmers to build their consistency model once (or use a predefined one) and use it in any of their classes without modifying the class itself.
 
 In this section, we present how to add consistency code into existing classes.
 
-Let us suppose that we have our class Person:
+Let us assume that we have our class Person:
 
 \begin{tBox}
 \begin{python}
 class Person(DataClayObject):
+     """
+     @ClassField name str
+     @ClassField age int
+     """
     @dclayMethod(name="str", age="int")
     def __init__(self, name, age):
         self.name = name
@@ -753,30 +751,28 @@ if __name__ == "__main__":
 
 With no consistency policies, the printed message would show an unpredictable age for Alice, since getters and setters are executed in a random backend among the locations of the object.
 
-In order to overcome this problem, dataClay provides a mechanism to define synchronization policies at user-level. In particular, class developers are allowed to define three different annotations to customize the behavior of attribute updates:
+In order to overcome this problem, dataClay provides a mechanism to define synchronization policies at user-level. In particular, class developers are allowed to define an annotation to customize the behavior of attribute updates:
 
 \begin{tBox}
 \begin{python}
-@dclayReplication(inMaster='boolean')
-@dclayReplication(beforeUpdate='method')
-@dclayReplication(afterUpdate='method')
+@dclayReplication(inMaster='...', beforeUpdate='...', afterUpdate='...')
 @ClassField name type
 \end{python}
 \end{tBox}
 
 The \textit{inMaster} annotation forces the update operation to be handled from the master location if set to true. The default master location of an object is the backend where the object was originally stored.
 
-On the other hand, \textit{beforeUpdate} and \textit{afterUpdate} define extra behavior to be executed before or after the update operation. The \textit{method} argument specifies an operation signature of the class of current class. In this way, the developer is allowed to define an action to be triggered before the update operation, and an action to be taken after the update operation.
+On the other hand, \textit{beforeUpdate} and \textit{afterUpdate} define extra behavior to be executed before or after the update operation. Their value corresponds to an operation signature of a method, which can belong to the same class or can be inherited from a mixin. In this way, the developer can define an action to be triggered before the update operation, and/or an action to be taken after the update operation.
 
-The \textit{ClassField} annotation allows the user to define which fields of the class have to apply the defined behavior.
+The \textit{ClassField} annotation defines which fields of the class have to apply the defined behavior.
 
-Let us resume our previous example. Assuming that the \textit{name} attribute is never modified (e.g. private setter), we want, however, that every time the \textit{age} is updated the change is propagated to all the replicas. Empowering Person class with the proper annotations, we can intervene updates of attribute \textit{age} to perform the update synchronization:
+Let us resume our previous example. Assuming that the \textit{name} attribute is never modified (e.g. private setter), we want, however, that every time the \textit{age} is updated the change is propagated to all the replicas. Empowering Person class with the proper annotations, we can intervene updates of attribute \textit{age} to perform the update synchronization, which has been implemented in the class \textit{SequentialConsistencyMixin}, extended by \textit{Person}:
 
 \begin{tBox}
 \begin{python}
-class Person(DataClayObject):
+class Person(DataClayObject, SequentialConsistencyMixin):
     """ 
-    @dclayReplication(afterUpdate='replicateToSlaves', inMaster='True')
+    @dclayReplication(afterUpdate='synchronize', inMaster='True')
     @ClassField age int
     """
 
@@ -785,23 +781,39 @@ class Person(DataClayObject):
         self.name = name
         self.age = age
 
-    @dclayMethod(attribute="str", value="anything")
-    def replicateToSlaves(self, attribute, value):
-        from dataclay.DataClayObjProperties import DCLAY_SETTER_PREFIX
-        for exeenv_id in self.get_all_locations():
-            if exeenv_id != master_location:
-                self.run_remote(exeenv_id, DCLAY_SETTER_PREFIX + attribute, value)
 \end{python}
 \end{tBox}
 
-Notice that the class has now implemented the behavior to synchronize replicas through the method \textit{replicateToSlaves}. That is, in this example, the master replica leads a sequential consistency model by synchronizing the contents with secondary replicas.
+Following the example, and as part of the class model, the proposed \textit{SequentialConsistencyMixin} class can be implemented as follows:
+\begin{tBox}
+\begin{python}
+class SequentialConsistencyMixin(object):
 
-Few considerations merit the attention of model developers:
+    @dclayMethod(attribute="str", value="anything")
+    def synchronize(self, attribute, value):
+        for exeenv_id in self.get_all_locations().keys():
+            if exeenv_id != master_location:
+                self.run_remote(exeenv_id, attribute, value)
+
+\end{python}
+\end{tBox}
+
+In this example, the master replica leads a sequential consistency model by synchronizing the contents with secondary replicas.
+
+Some considerations merit the attention of model developers:
 
 \begin{itemize}
     \item The master location can be checked through the field \textit{master\_location}.
-    \item The method whose name is specified in the annotations is implemented in the model class and receives the attribute name to be set and its new value.
+    \item The method whose name is specified in the annotations is implemented in the model class or a superclass and receives the attribute name to be set and its new value.
 \end{itemize}
+
+For convenience,  the implementation of the \textit{SequentialConsistencyMixin} class in the example can be used by including the import:
+
+\colorbox{basecolor!20}{\texttt{from dataClay.contrib.synchronization import SequentialConsistencyMixin}}
+
+\FEDERATION{
+\input{Python/pFederation.tex}
+}
 
 \section{Further considerations}
 \label{sec:PythonConsiderations}
@@ -886,7 +898,3 @@ Sometimes using third-party libraries from registered data models is not trivial
 Multithreading is supported both at the client side and at the server side. However, due to the CPython Global Interpreter Lock implementation details, only one thread can execute Python code at once (even though certain performance-oriented libraries might overcome this limitation). If you have Python-pure CPU-intensive parallel workloads which are being executed in methods of dataClay persisted objects, then you may experience serialization of executions (and thus, loss of performance).
 
 In Section~\ref{sec:PythonParallelism} we explain how to face this problem, but if you still have some doubts or further requirements for your applications, please contact us (\texttt{\href{mailto:support-dataclay@bsc.es}{support-dataclay@bsc.es}}) and we will provide you the proper solutions.
-
-\FEDERATION{
-\input{Python/pFederation.tex}
-}

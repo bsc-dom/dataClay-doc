@@ -1,43 +1,181 @@
-\section{Object extended methods: federation}
-\label{sec:pObjectFederation}
+In the following we present the API provided by dataClay to manage the federation of objects between dataClay instances. It comprises a set of methods that are part of the dataClay API to manage the connection between different dataClay instances, as well as object methods to manage the federation of objects. Recall that methods from the dataClay API can be called through \textit{dataclay.api} with the proper import, for instance:
 
-There are cases where it is interesting to be able to access an object stored in a dataClay instance from another dataClay instance as if it belonged to both instances. More details on federation is presented in Section~\ref{sec:pFederation}.
+\colorbox{basecolor!20}{\texttt{from dataclay.api import finish, init, register\_dataclay}}
 
+\subsection{dataClay API methods}
+\label{sec:PythonFederationAPI}
 
-\begin{tBox}
-\textcolor{basecolor} {\bf Example: Using federate}
-\begin{python}
-from dataclay import api
-p1 = Person.get_by_alias("person1")
-# federating object and subobjects, from current dataClay to dataClay2
-p1.federate("dataClay2")
-\end{python}
-\end{tBox}
-
-% ------- getFederation ---------
+% ------- federateAllObjects ---------
 
 \begin{dBox}
-\texttt{def \CALL{get\_federation\_of\_object}(self):}
+\texttt{def \CALL{federate\_all\_objects}(dataclay\_id):}
 \LINE
 
 {\it Description:}
 
 \begin{itemize}
- \item Retrieves all the dataClay instances where the object is federated. 
- A DataClayInstance has a the id, name, hostname and port of a dataClay instance.
+  \item Federates all the objects in the current dataClay instance with another dataClay instance. 
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries dataclay\_id:} ID of the external dataClay. It must be previously registered.
+\end{itemize}
+
+\end{dBox}
+
+% ------- getDataClayID ---------
+
+\begin{dBox}
+\texttt{def \CALL{get\_dataclay\_id}([host, port]):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Retrieves the ID of the dataClay instance accessible in \textit{host}, \textit{port}, or of the current dataClay instance if there are no parameters.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries host:} host where the dataClay instance is located.
+  \item \texttt{\bfseries port:} port where the dataClay instance is listening.
 \end{itemize}
 
 {\it Returns:}
 
 \begin{itemize}
- \item A set of DataClayInstance objects in which this object is federated. 
+ \item The ID of the current dataClay instance, or of the dataClay instance located in \textit{host}, \textit{port}.
+\end{itemize}
+
+\end{dBox}
+
+% ------- registerDataClay ---------
+
+\begin{dBox}
+\texttt{def \CALL{register\_dataclay}(host, port):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Makes the current dataClay instance aware of another dataClay instance accessible in \textit{host} and \textit{port}, and returns its ID.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries host:} host where the dataClay instance to be registered is located.
+  \item \texttt{\bfseries port:} port where the dataClay instance to be registered is listening.
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+ \item The ID of the dataClay instance located in \textit{host}, \textit{port}.
+\end{itemize}
+
+\end{dBox}
+
+% ------- unfederateAllObjects ---------
+\begin{dBox}
+
+\texttt{def \CALL{unfederate\_all\_objects}([dc\_id]):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Unfederates all the objects in the current dataClay instance with the indicated dataClay instance. If no \textit{dc\_id} is specified, the objects are unfederated from all the instances where they live.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries dc\_id:} ID of the external dataClay. It must be previously registered.
+\end{itemize}
+
+\end{dBox}
+
+\subsection{Object methods}
+\label{sec:PythonFederationObject}
+
+% ------- federate ---------
+\begin{dBox}
+\texttt{def \CALL{federate}(self, dc\_id, recursive=True):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Federates current object with another dataClay instance. 
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries dc\_id:} ID of the external dataClay. It must be previously registered.
+  \item \texttt{\bfseries recursive:} when this flag is TRUE, all objects (recursively) referenced by the current one will also be federated (except those that are already present in the destination dataClay). 
+\end{itemize}
+\end{dBox}
+
+
+\begin{tBox}
+\textcolor{basecolor} {\bf Example: Using federate}
+\begin{python}
+  other_dc = get_dataclay_id(host, port);
+  p1 = Person.get_by_alias("person1");
+  # federating object and subobjects to other_dc (previously registered)
+  p1.federate(other_dc);
+\end{python}
+\end{tBox}
+
+% ------- getFederationSource ------
+
+\begin{dBox}
+\texttt{def \CALL{get\_federation\_source}(self):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+ \item Retrieves the ID of the dataClay instance where the object is federated from. 
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+ \item The id of the dataClay instance that is the source of this federated object.  
+ It is null if the object is not federated.
+\end{itemize}
+
+\end{dBox}
+
+% ------- getFederationTargets ---------
+
+\begin{dBox}
+\texttt{def \CALL{get\_federation\_targets}(self):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+ \item Retrieves the IDs of all the dataClay instances where the object is federated. 
+\end{itemize}
+
+{\it Returns:}
+
+\begin{itemize}
+ \item A set of DataClayInstanceID objects in which this object is federated. 
  It can be empty if it is not federated.
 \end{itemize}
 
 \end{dBox}
 
 \begin{tBox}
-\textcolor{basecolor} {\bf Example: Using get\_federation\_of\_object}
+\textcolor{basecolor} {\bf Example: Using get\_federation\_targets}
 \begin{python}
 from dataclay import api
 newPerson = Person.get_by_alias('Alias')
@@ -46,66 +184,51 @@ assert api.LOCAL in dataclays
 \end{python}
 \end{tBox}
 
-% ------- federate ---------
+% ------- setInDataClayInstance ---------
 
 \begin{dBox}
-\texttt{def \CALL{federate}(self, dataclay\_name=None, recursive=True):}
+\texttt{def \CALL{set\_in\_dataclay\_instance}(self, dc\_id, operation\_name, params):}
 \LINE
 
 {\it Description:}
 
 \begin{itemize}
-	\item Federates current object with external dataClay. For more information about federation, check section \ref{sec:pFederation}.
+  \item Executes a setter on a particular dataClay where the object is federated.
 \end{itemize}
 
 {\it Parameters:}
 
 \begin{itemize}
-  \item \texttt{\bfseries dataclay\_name:} Name of the external dataClay. It must be previously registered.
-  \item \texttt{\bfseries recursive:} when this flag is TRUE, all objects referenced by the current one will also be federated (except those that are already present in the destination dataClay). When this parameter is not set, the default behavior is to perform a recursive federation.
-\end{itemize}
-{\it Returns:}
-
-{\it Exceptions:}
-
-\begin{itemize}
-  \item If the object is not persistent or the external dataClay is not registered, a DataClayException is raised.
-
-\end{itemize}
-
-\end{dBox}
-
-% ------- runFederated ---------
-
-\begin{dBox}
-\texttt{public Object \CALL{run\_federated}(dc\_info, \newline operation\_name, params) throws DataClayException}
-\LINE
-
-{\it Description:}
-
-\begin{itemize}
-  \item Executes a specific method on a particular dataClay where the object is federated. Notice that currently this method is intended for synchronization purposes analogously to method \textit{runRemote}.
-\end{itemize}
-
-{\it Parameters:}
-
-\begin{itemize}
-  \item \texttt{\bfseries dc\_info:} dataClay instance where the method must be executed.
-  \item \texttt{\bfseries operation\_name:} ID of the method to be executed.
-  \item \texttt{\bfseries params:} The regular parameters of the method.
+  \item \texttt{\bfseries dc\_id:} dataClay instance where the method must be executed.
+  \item \texttt{\bfseries operation\_name:} ID of the setter to be executed.
+  \item \texttt{\bfseries params:} The parameters of the method.
 \end{itemize}
  
-{\it Returns:}
-
-\begin{itemize}
-  \item The expected result from the execution of the specified method.
-\end{itemize}
-
-{\it Exceptions:}
-
-\begin{itemize}
-  \item If this object is not federated with given dataClay instance, a DataClayException is raised.
-\end{itemize}
 \end{dBox}
+
+% ------- unfederate ---------
+\begin{dBox}
+
+\texttt{def \CALL{unfederate}(self, [dc\_id], recursive=True):}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Unfederates current object (and referenced objects) with the indicated dataClay instance. If no \textit{dc\_id} is specified, the object is unfederated from all the instances where it lives.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries dc\_id:} ID of the external dataClay. It must be previously registered.
+  \item \texttt{\bfseries recursive:} when this flag is TRUE, all objects (recursively) referenced by the current one will also be unfederated.
+\end{itemize}
+
+\end{dBox}
+
+
+
+
 
 
