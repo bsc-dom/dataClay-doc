@@ -58,7 +58,7 @@ To this end, we will guide you through the installation process by looking at th
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.0"
+    image: "bscdataclay/logicmodule:2.4"
     ports:
       - "11034:11034"
     environment:
@@ -75,7 +75,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
          
   dsjava:
-    image: "bscdataclay/dsjava:2.0"
+    image: "bscdataclay/dsjava:2.4"
     ports:
       - "2127:2127"
     depends_on:
@@ -94,7 +94,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.0"
+    image: "bscdataclay/dspython:2.4"
     ports:
       - "6867:6867"
     depends_on:
@@ -158,7 +158,7 @@ The docker-compose file for the first node defining the Logic Module. Notice tha
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.0"
+    image: "bscdataclay/logicmodule:2.4"
     ports:
       - "11034:11034"
     environment:
@@ -187,7 +187,7 @@ Notice that the only variable that needs to be manually defined is \texttt{LOGIC
 version: '3.4'
 services:
  dsjava:
-    image: "bscdataclay/dsjava:2.0"
+    image: "bscdataclay/dsjava:2.4"
     ports:
       - "2127:2127"
     depends_on:
@@ -206,7 +206,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.0"
+    image: "bscdataclay/dspython:2.4"
     ports:
       - "6867:6867"
     depends_on:
@@ -237,7 +237,7 @@ Finally, the only variable that needs to be manually defined is \texttt{LOGICMOD
 version: '3.4'
 services:
  dsjava2:
-    image: "bscdataclay/dsjava:2.0"
+    image: "bscdataclay/dsjava:2.4"
     ports:
       - "2128:2128"
     depends_on:
@@ -256,7 +256,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython2:
-    image: "bscdataclay/dspython:2.0"
+    image: "bscdataclay/dspython:2.4"
     ports:
       - "6868:6868"
     depends_on:
@@ -287,7 +287,7 @@ In Section~\ref{sec:PythonConsiderationsExecutionEnvironment} we explain that th
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.0"
+    image: "bscdataclay/logicmodule:2.4"
     ports:
       - "11034:11034"
     environment:
@@ -304,7 +304,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
          
   dsjava:
-    image: "bscdataclay/dsjava:2.0"
+    image: "bscdataclay/dsjava:2.4"
     ports:
       - "2127:2127"
     depends_on:
@@ -323,7 +323,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.0"
+    image: "bscdataclay/dspython:2.4"
     ports:
       - "6867:6867"
     depends_on:
@@ -342,7 +342,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
        
   dspython2:
-    image: "bscdataclay/dspython:2.0"
+    image: "bscdataclay/dspython:2.4"
     ports:
       - "6868:6868"
     depends_on:
@@ -376,7 +376,7 @@ In the server-side the default path is the same, but following previous examples
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.0"
+    image: "bscdataclay/logicmodule:2.4"
     ports:
       - "11034:11034"
     environment:
@@ -393,7 +393,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
          
   dsjava:
-    image: "bscdataclay/dsjava:2.0"
+    image: "bscdataclay/dsjava:2.4"
     ports:
       - "2127:2127"
     depends_on:
@@ -412,7 +412,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.0"
+    image: "bscdataclay/dspython:2.4"
     ports:
       - "6867:6867"
     depends_on:
@@ -433,7 +433,13 @@ services:
 \end{tBox}
 
 \subsection{Singularity}
-dataClay can also be deployed using Singularity: once converted the Docker images as explained in the \href{https://sylabs.io/guides/3.0/user-guide/build_a_container.html#downloading-an-existing-container-from-docker-hub}{Singularity official guide}, each container can be orchestrated by using \href{https://singularityhub.github.io/singularity-compose}{Singularity Compose} (e.g. by manually porting the configurations contained in docker-compose.yml example files).
+dataClay can also be deployed using Singularity, by using the \texttt{singularity pull} command (for more information see the \href{https://sylabs.io/guides/3.0/user-guide/build_a_container.html#downloading-an-existing-container-from-docker-hub}{Singularity official guide}): 
+
+\texttt{singularity pull docker://bscdataclay/logicmodule:2.4}
+\texttt{singularity pull docker://bscdataclay/dsjava:2.4}
+\texttt{singularity pull docker://bscdataclay/dspython:2.4}
+
+Each container can be orchestrated by using \href{https://singularityhub.github.io/singularity-compose}{Singularity Compose} (e.g. by manually porting the configurations contained in the \texttt{docker-compose.yml} example files).
 
 \subsection{Memory Management and Garbage Collection}\index{memory management}\index{garbage collection}
 

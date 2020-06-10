@@ -15,7 +15,7 @@ If you are developing a Java application, you can add the following dependency i
   <dependency>
     <groupId>es.bsc.dataclay</groupId>
     <artifactId>dataclay</artifactId>
-    <version>2.0</version>
+    <version>2.4</version>
   </dependency>
  \end{bash}
 \end{tBox}
@@ -104,7 +104,7 @@ Additionally, we need to modify dataClay's \texttt{docker-compose.yml} to add \t
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.0"
+    image: "bscdataclay/logicmodule:2.4"
     command: --tracing
     ports:
       - "11034:11034"
@@ -122,7 +122,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
          
   dsjava:
-    image: "bscdataclay/dsjava:2.0"
+    image: "bscdataclay/dsjava:2.4"
     command: --tracing
     ports:
       - "2127:2127"
@@ -142,7 +142,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.0"
+    image: "bscdataclay/dspython:2.4"
     command: --tracing
     depends_on:
       - logicmodule
@@ -182,7 +182,7 @@ dataClay needs to use the first available task ID which is \texttt{task ID = COM
 
 Once the application is finished, traces will be generated and stored in \texttt{`pwd`/traces} directory. 
 
-The versions currently supported are Extrae 3.6.1 and COMPSs 2.4.
+The versions currently supported are Extrae 3.5.4 and COMPSs 2.6.
 
 \section{Federation with secure communications}
 
@@ -212,7 +212,7 @@ services:
       - "443:443"
       
   logicmodule:
-    image: "bscdataclay/logicmodule:2.0"
+    image: "bscdataclay/logicmodule:2.4"
     environment:
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
@@ -233,7 +233,7 @@ services:
       - "traefik.protocol=h2c"
           
   dsjava:
-    image: "bscdataclay/dsjava:2.0"
+    image: "bscdataclay/dsjava:2.4"
     depends_on:
       - logicmodule
     environment:
@@ -250,7 +250,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.0"
+    image: "bscdataclay/dspython:2.4"
     depends_on:
       - logicmodule
       - dsjava
