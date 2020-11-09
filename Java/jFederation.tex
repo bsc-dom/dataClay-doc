@@ -8,7 +8,7 @@ An object can be federated with an unlimited number of other dataClay instances.
 
 Federated objects can be synchronized in all dataClay instances sharing them, in such a way that only those parts of the data that change are transferred through the network in order to avoid unnecessary transfers. This is achieved analogously to the synchronization of replicas stored among different backends of a single dataClay, as explained below. 
 
-To federate an object, both the source and the target dataClay must have the same data model registered. In the current version, this is achieved by extending the dataClay docker image in such a way that it already contains the registered model (see Section \ref{sec:dClayTool}). This extended docker image needs to be pulled in all the devices that will share data.
+To federate an object, both the source and the target dataClay must have the same data model registered. This is achieved by importing the model from the target dataClay, or from another dataClay instance holding the same model as the target dataClay. This process is done through the methods \textit{RegisterDataClay} and \textit{ImportModelsFromExternalDataClay} (as well as the usual \textit{GetStubs}) before the execution of the application (see Section \ref{sec:dClayTool}).
 
 In this section we present how to manage federation of objects that instantiate Java classes. 
 
@@ -47,7 +47,7 @@ public class App {
 \end{java}
 \end{tBox}
 
-The first step is to make both dataClay instances aware of each other by means of the \textit{registerDataClay} method, explained in section \ref{sec:JavaFederationAPI}. The dataClay instance id returned by this call is used as a parameter for the \textit{federate} call on the object to indicate the dataClay instance that will receive the federated object. 
+The first step is to make both dataClay instances aware of each other by means of the \textit{registerDataClay} method, explained in section \ref{sec:JavaFederationAPI}. The dataClay instance id returned by this call is used as a parameter for the \textit{federate} call on the object to indicate the dataClay instance that will receive the federated object. As explained above, note that both dataClay instances must have the same data model registered. 
 At this point, an application accessing the dataClay instance \textit{otherDC} can execute the following code:
 
 \begin{tBox}

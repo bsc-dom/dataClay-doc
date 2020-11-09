@@ -58,7 +58,7 @@ To this end, we will guide you through the installation process by looking at th
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.4"
+    image: "bscdataclay/logicmodule"
     ports:
       - "11034:11034"
     environment:
@@ -66,16 +66,13 @@ services:
       - LOGICMODULE_HOST=logicmodule
       - DATACLAY_ADMIN_USER=admin
       - DATACLAY_ADMIN_PASSWORD=admin
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
-      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
     healthcheck:
        interval: 5s
        retries: 10
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
          
   dsjava:
-    image: "bscdataclay/dsjava:2.4"
+    image: "bscdataclay/dsjava"
     ports:
       - "2127:2127"
     depends_on:
@@ -85,16 +82,13 @@ services:
       - DATASERVICE_JAVA_PORT_TCP=2127
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
-      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
     healthcheck:
        interval: 5s
        retries: 10
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.4"
+    image: "bscdataclay/dspython"
     ports:
       - "6867:6867"
     depends_on:
@@ -105,8 +99,6 @@ services:
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
       - DATASERVICE_PYTHON_PORT_TCP=6867
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
     healthcheck:
        interval: 5s
        retries: 10
@@ -158,7 +150,7 @@ The docker-compose file for the first node defining the Logic Module. Notice tha
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.4"
+    image: "bscdataclay/logicmodule"
     ports:
       - "11034:11034"
     environment:
@@ -166,9 +158,6 @@ services:
       - LOGICMODULE_HOST=logicmodule
       - DATACLAY_ADMIN_USER=admin
       - DATACLAY_ADMIN_PASSWORD=admin
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
-      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
     healthcheck:
        interval: 5s
        retries: 10
@@ -187,7 +176,7 @@ Notice that the only variable that needs to be manually defined is \texttt{LOGIC
 version: '3.4'
 services:
  dsjava:
-    image: "bscdataclay/dsjava:2.4"
+    image: "bscdataclay/dsjava"
     ports:
       - "2127:2127"
     depends_on:
@@ -197,16 +186,13 @@ services:
       - DATASERVICE_JAVA_PORT_TCP=2127
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
-      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
     healthcheck:
        interval: 5s
        retries: 10
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.4"
+    image: "bscdataclay/dspython"
     ports:
       - "6867:6867"
     depends_on:
@@ -217,8 +203,6 @@ services:
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
       - DATASERVICE_PYTHON_PORT_TCP=6867
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
     healthcheck:
        interval: 5s
        retries: 10
@@ -237,7 +221,7 @@ Finally, the only variable that needs to be manually defined is \texttt{LOGICMOD
 version: '3.4'
 services:
  dsjava2:
-    image: "bscdataclay/dsjava:2.4"
+    image: "bscdataclay/dsjava"
     ports:
       - "2128:2128"
     depends_on:
@@ -247,16 +231,13 @@ services:
       - DATASERVICE_JAVA_PORT_TCP=2128
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
-      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
     healthcheck:
        interval: 5s
        retries: 10
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython2:
-    image: "bscdataclay/dspython:2.4"
+    image: "bscdataclay/dspython"
     ports:
       - "6868:6868"
     depends_on:
@@ -267,8 +248,6 @@ services:
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
       - DATASERVICE_PYTHON_PORT_TCP=6868
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
     healthcheck:
        interval: 5s
        retries: 10
@@ -287,7 +266,7 @@ In Section~\ref{sec:PythonConsiderationsExecutionEnvironment} we explain that th
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.4"
+    image: "bscdataclay/logicmodule"
     ports:
       - "11034:11034"
     environment:
@@ -295,16 +274,13 @@ services:
       - LOGICMODULE_HOST=logicmodule
       - DATACLAY_ADMIN_USER=admin
       - DATACLAY_ADMIN_PASSWORD=admin
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
-      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
     healthcheck:
        interval: 5s
        retries: 10
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
          
   dsjava:
-    image: "bscdataclay/dsjava:2.4"
+    image: "bscdataclay/dsjava"
     ports:
       - "2127:2127"
     depends_on:
@@ -314,16 +290,13 @@ services:
       - DATASERVICE_JAVA_PORT_TCP=2127
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/javaclay/cfgfiles/global.properties:ro
-      - ./prop/log4j2.xml:/usr/src/dataclay/javaclay/log4j2.xml:ro
     healthcheck:
        interval: 5s
        retries: 10
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.4"
+    image: "bscdataclay/dspython"
     ports:
       - "6867:6867"
     depends_on:
@@ -334,15 +307,13 @@ services:
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
       - DATASERVICE_PYTHON_PORT_TCP=6867
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
     healthcheck:
        interval: 5s
        retries: 10
        test: ["CMD-SHELL", "/usr/src/dataclay/pyclay/health_check.sh"]
        
   dspython2:
-    image: "bscdataclay/dspython:2.4"
+    image: "bscdataclay/dspython"
     ports:
       - "6868:6868"
     depends_on:
@@ -353,8 +324,6 @@ services:
       - LOGICMODULE_PORT_TCP=11034
       - LOGICMODULE_HOST=logicmodule
       - DATASERVICE_PYTHON_PORT_TCP=6868
-    volumes:
-      - ./prop/global.properties:/usr/src/dataclay/pyclay/cfgfiles/global.properties:ro
     healthcheck:
        interval: 5s
        retries: 10
@@ -365,7 +334,7 @@ services:
 
 \subsection{Tuning dataClay}
 
-dataClay allows to tune some specific settings (detailed in next sections) using a property file located on a specific path. 
+dataClay allows to tune some specific settings (detailed in next sections) using either environment variables or a property file located on a specific path. 
 
 In the application/client side the default path of this file is \texttt{./cfgfiles/global.properties} and can be also defined via the environment variable \texttt{DATACLAY\_GLOBAL\_CONFIG}.
 
@@ -376,7 +345,7 @@ In the server-side the default path is the same, but following previous examples
 version: '3.4'
 services:
   logicmodule:
-    image: "bscdataclay/logicmodule:2.4"
+    image: "bscdataclay/logicmodule"
     ports:
       - "11034:11034"
     environment:
@@ -393,7 +362,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
          
   dsjava:
-    image: "bscdataclay/dsjava:2.4"
+    image: "bscdataclay/dsjava"
     ports:
       - "2127:2127"
     depends_on:
@@ -412,7 +381,7 @@ services:
        test: ["CMD-SHELL", "/usr/src/dataclay/javaclay/health_check.sh"]
        
   dspython:
-    image: "bscdataclay/dspython:2.4"
+    image: "bscdataclay/dspython"
     ports:
       - "6867:6867"
     depends_on:
@@ -435,9 +404,9 @@ services:
 \subsection{Singularity}
 dataClay can also be deployed using Singularity, by using the \texttt{singularity pull} command (for more information see the \href{https://sylabs.io/guides/3.0/user-guide/build_a_container.html#downloading-an-existing-container-from-docker-hub}{Singularity official guide}): 
 
-\texttt{singularity pull docker://bscdataclay/logicmodule:2.4}
-\texttt{singularity pull docker://bscdataclay/dsjava:2.4}
-\texttt{singularity pull docker://bscdataclay/dspython:2.4}
+\texttt{singularity pull docker://bscdataclay/logicmodule}\\
+\texttt{singularity pull docker://bscdataclay/dsjava}\\
+\texttt{singularity pull docker://bscdataclay/dspython}
 
 Each container can be orchestrated by using \href{https://singularityhub.github.io/singularity-compose}{Singularity Compose} (e.g. by manually porting the configurations contained in the \texttt{docker-compose.yml} example files).
 
@@ -445,7 +414,7 @@ Each container can be orchestrated by using \href{https://singularityhub.github.
 
 In section \ref{sec:GarbageCollection} we have introduced that dataClay runs some processes to keep memory and disk usage in a healthy state. On the one hand, flushing objects from memory to disk when memory usage reaches a certain threshold. On the other hand, keeping track of reference counters to detect objects that are no longer accessible so they can be removed from the system.
 
-To control the impact of these processes on the system performance, dataClay provides the administrator with the capability to configure the following parameters via \textit{global.properties} file. Notice that time parameters are always expressed in milliseconds.
+To control the impact of these processes on the system performance, dataClay provides the administrator with the capability to configure the following parameters via environment variables or the \textit{global.properties} file. Notice that time parameters are always expressed in milliseconds.
 
 \begin{table}[H]
 \footnotesize
@@ -464,16 +433,16 @@ To control the impact of these processes on the system performance, dataClay pro
 \end{tBox}
 \end{table}
 
-An example of the \textit{global.properties} file with non-default values would be as follows:
-
-\begin{tBox}
- \begin{bash}
-MEMMGMT_PRESSURE_FRACTION=0.8
-MEMMGMT_CHECK_TIME_INTERVAL=8000
-GLOBALGC_CHECK_TIME_INTERVAL=1000000
- \end{bash}
-\end{tBox}
-
+%An example of the \textit{global.properties} file with non-default values would be as follows:
+%
+%\begin{tBox}
+% \begin{bash}
+%MEMMGMT_PRESSURE_FRACTION=0.8
+%MEMMGMT_CHECK_TIME_INTERVAL=8000
+%GLOBALGC_CHECK_TIME_INTERVAL=1000000
+ %\end{bash}
+%\end{tBox}
+%
 \PREFETCH{
 \subsubsubsection{Data Prefetching}\index{prefetching}
 \label{sec:prefetchingTuning}

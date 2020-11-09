@@ -149,6 +149,49 @@ In this section we present the options offered by the dataClay command line util
  
 \end{dBox}
 
+% ------- ImportModelsFromExternalDataClay ---------
+
+\begin{dBox}
+\texttt{\CALL{ImportModelsFromExternalDataClay} \newline host port namespace}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Imports all classes from the indicated namespace of the dataClay instance running in the specified host and port. The external dataClay instance must have been previously registered by means of the method \texttt{RegisterDataClay}.
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries host}: host where the dataClay instance from which the models must be imported is located.
+    \item \texttt{\bfseries port}: port where the dataClay instance from which the models must be imported is listening.
+    \item \texttt{\bfseries namespace}: namespace from which the models must be imported.
+\end{itemize}
+ 
+\end{dBox}
+
+% ------- RegisterDataClay ---------
+
+\begin{dBox}
+\texttt{\CALL{RegisterDataClay} \newline host port}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+    \item Makes the current dataClay instance aware of another dataClay instance accessible in host and port
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+    \item \texttt{\bfseries host}: host where the dataClay instance to be registered is located.
+    \item \texttt{\bfseries port}: port where the dataClay instance to be registered is listening.
+\end{itemize}
+ 
+\end{dBox}
+
 % ------- Data Contracs ---------
 
 \section{Data contracts}\index{contract}

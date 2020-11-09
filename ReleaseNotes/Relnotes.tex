@@ -2,19 +2,21 @@
 \chapter*{Release notes}
 
 \begin{itemize}
-\item[] \textbf{2020, June : Release version 2.4}\newline
+\item[] \textbf{2020, November : Release version 2.5}\newline
     \begin{itemize}
     \item[] \textbf{New features}
         \begin{itemize}
-            \item[] Support for Python 3.7 and 3.8
-            \item[] Support for ARM 64-bit architecture
-            \item[] Integrated Paraver tracing for applications using dataClay and COMPSs
+            \item[] Importing data models from other dataClay instances
+            \item[] Support for interfaces in the definition of data models in Java
+            \item[] Python mixins for exporting objects via MQTT and Kafka in JSON format
+            \item[] Slim and alpine versions of docker images	
         \end{itemize}
     \item[] \textbf{Improvements}
         \begin{itemize}
-            \item[] Improved performance in \textit{get by alias}
-            \item[] Improved Singularity deployment
-            \item[] New deployable demos and updated examples
+            \item[] Faster serialization for \texttt{numpy.ndarray} 
+            \item[] Smooth shutdown for docker environments
+            \item[] Additional option of configuration via environment variables
+            \item[] Simplified activation of logging
             \item[] Bug fixes
         \end{itemize}
     \end{itemize}
