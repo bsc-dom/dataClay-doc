@@ -57,6 +57,26 @@ To this end, we will guide you through the installation process by looking at th
  \begin{lstlisting}[language=docker-compose-2, frame=none]
 version: '3.4'
 services:
+  dcinitializer:
+    image: "bscdataclay/initializer"
+    command: "--wait-for-python-ds 1 --wait-for-java-ds 1"
+    depends_on:
+      - logicmodule
+      - dsjava
+      - dspython
+    environment:
+      - LOGICMODULE_PORT_TCP=11034
+      - LOGICMODULE_HOST=logicmodule
+      - USER=${USER:-defaultUser}
+      - PASS=${PASS:-defaultPass}
+      - DATASET=${DATASET:-defaultDS}
+      - GIT_PYTHON_MODELS_URLS=https://gitlab.bsc.es/model.git
+      - PYTHON_NAMESPACES=Namespace
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: [ "CMD-SHELL", "/dataclay-initializer/health_check.sh" ]
+
   logicmodule:
     image: "bscdataclay/logicmodule"
     ports:
@@ -115,8 +135,18 @@ Before starting, the first step is to download the required images executing the
 
 At this point, following subsections detail the different parts of the file and which ones can be customized.
 
+\subsubsection{Initializer}
+The \textit{initializer} service facilitates the initialization of a dataClay instance by enabling the user to indicate the classes to be registered, which may reside locally or in a remote repository. For this container, the host and port of the Logic Module must be indicated in the corresponding environment variables \texttt{LOGICMODULE\_HOST} and \texttt{LOGICMODULE\_PORT\_TCP} (see next subsection), as well as all the information required to register the classes. In particular, the user name and password must be given in variables \texttt{USER} and \texttt{PASS}. The dataset where objects will be created corresponds to variable \texttt{DATASET}, and the namespace where the model will be registered shall be indicated in \texttt{JAVA\_NAMESPACES} or \texttt{PYTHON\_NAMESPACES}. Finally, the classes to be registered can be indicated in the following environment variables: \texttt{JAVA\_MODELS\_PATH} or \texttt{PYTHON\_MODELS\_PATH}, if they are stored locally, or in the variables \texttt{GIT\_JAVA\_MODELS\_URLS}/\texttt{GIT\_PYTHON\_MODELS\_URLS}, and \texttt{GIT\_JAVA\_MODELS\_PATHS}/\texttt{GIT\_PYTHON\_MODELS\_PATHS} if they are available in a GIT repository. In all cases several values can be indicated, separated by spaces.
+
+Alternatively, models can also be imported from other dataClay instances which already have them registered. For this, the following environment variables shall be used: 
+\begin{itemize}
+   \item[] \texttt{IMPORT\_MODELS\_FROM\_EXTERNAL\_DC\_HOSTS} 
+   \item[] \texttt{IMPORT\_MODELS\_FROM\_EXTERNAL\_DC\_PORTS}
+   \item[] \texttt{IMPORT\_MODELS\_FROM\_EXTERNAL\_DC\_NAMESPACES}
+\end{itemize}
+
 \subsubsection{Logic Module}
-The \textit{logicmodule}  service corresponds to the Logic Module. It is possible to customize the default Logic Module port, which is currently set to 11034 through environment variable \texttt{LOGICMODULE\_PORT\_TCP} and is mapped to host in \texttt{ports: - ``11034:11034''}. 
+The \textit{logicmodule} service corresponds to the Logic Module. It is possible to customize the default Logic Module port, which is currently set to 11034 through environment variable \texttt{LOGICMODULE\_PORT\_TCP} and is mapped to host in \texttt{ports: - ``11034:11034''}. 
 
 In this way, the Logic Module will publish its service at: \texttt{localhost:11034}. In section \ref{sec:ClientConfigFiles} it is described how to define the proper configuration files for user's applications considering this info.
 
@@ -414,20 +444,34 @@ Each container can be orchestrated by using \href{https://singularityhub.github.
 
 In section \ref{sec:GarbageCollection} we have introduced that dataClay runs some processes to keep memory and disk usage in a healthy state. On the one hand, flushing objects from memory to disk when memory usage reaches a certain threshold. On the other hand, keeping track of reference counters to detect objects that are no longer accessible so they can be removed from the system.
 
-To control the impact of these processes on the system performance, dataClay provides the administrator with the capability to configure the following parameters via environment variables or the \textit{global.properties} file. Notice that time parameters are always expressed in milliseconds.
+To control the impact of these processes on the system performance, dataClay provides the administrator with the capability to configure the following parameters via environment variables or the \textit{global.properties} file. Notice that time parameters are always expressed in milliseconds, except stated otherwise.
 
 \begin{table}[H]
 \footnotesize
 \begin{tBox}
 \centering
-\begin{tabular}{p{57mm} | p{27mm} |  >{\raggedright\arraybackslash}p{50mm}}
+\begin{tabular}{p{67mm} | p{27mm} |  >{\raggedright\arraybackslash}p{40mm}}
 \textbf{property} & \textbf{default value} & \textbf{description} \\
-\hline
-\verb MEMMGMT_PRESSURE_FRACTION & 0.7 (70\%) & Fraction of memory usage from which to consider that it is under pressure. \\
 \hline
 \verb MEMMGMT_CHECK_TIME_INTERVAL & 5000 (5 seconds) & Periodicity to check memory usage. \\
 \hline
+\verb MEMMGMT_EASE_FRACTION & 0 & Minimum fraction for an object to be in memory. \\
+\hline 
+\verb MEMMGMT_MIN_OBJECT_TIME & 200 & Minimum time for an object to be in memory. \\
+\hline
+\verb MEMMGMT_PRESSURE_FRACTION & 0.7 (70\%) & Fraction of memory usage from which to consider that it is under pressure. \\
+\hline
+\verb GLOBALGC_CHECK_REMOTE_PENDING & 2000 & Interval to check pending references to notify to other nodes.\\
+\hline
 \verb GLOBALGC_CHECK_TIME_INTERVAL & 86400000 (1 day) & Periodicity to check and collect objects from underlying storage. \\
+\hline
+\verb GLOBALGC_COLLECT_TIME_INTERVAL & 10000 & Interval to check objects to clean. \\
+\hline
+\verb GLOBALGC_COLLECTOR_INITIAL_DELAY_HOURS & 0 & Garbage collector initial delay in hours. \\
+\hline 
+\verb GLOBALGC_MAX_OBJECTS_TO_COLLECT_ITERATION & 1000 & Maximum number of objects to clean per iteration. \\
+\hline
+\verb GLOBALGC_PROCESS_COUNTINGS_INTERVAL & 1000 & Interval to check pending references to count. \\
 \end{tabular}
 \label{table:GarbageCollection}
 \end{tBox}

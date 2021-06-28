@@ -699,6 +699,22 @@ In Python, users cannot deallocate objects manually so dataClay does not provide
 
 On the other hand, a Global Garbage Collector keeps track of global reference counters in a per object basis. Considering the conditions that an object has to meet in order to be removed, as stated in section \ref{sec:GarbageCollection}, its associated reference counter not only counts which objects are pointing to it, but also how many aliases it has or the applications and running methods that are using it.
 
+In some cases, certain objects used in long-running applications, such as services, are only needed during a limited period of time, and it may be convenient to free the space they are taking. The following method can be used to notify the Global Garbage Collector that an object is no longer needed by the application or service and, thus, it can be garbage-collected: 
+
+\begin{dBox}
+\texttt{def \CALL{session\_detach}(self)}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Dissociates current object from the current session. 
+\end{itemize}
+
+{\it Parameters:}
+
+\end{dBox}
+
 \section{Replica management}\index{replica management}
 \label{sec:PythonReplication}
 

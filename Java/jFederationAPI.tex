@@ -5,26 +5,6 @@ In the following we present the API provided by dataClay to manage the federatio
 \subsection{dataClay API methods}
 \label{sec:JavaFederationAPI}
 
-% ------- federateAllObjects ---------
-
-\begin{dBox}
-\texttt{public static void \CALL{federateAllObjects}(DataClayInstanceID dcID)}
-\LINE
-
-{\it Description:}
-
-\begin{itemize}
-  \item Federates all the objects in the current dataClay instance with another dataClay instance. 
-\end{itemize}
-
-{\it Parameters:}
-
-\begin{itemize}
-  \item \texttt{\bfseries dcID:} ID of the external dataClay. It must be previously registered.
-\end{itemize}
-
-\end{dBox}
-
 % ------- getDataClayID ---------
 
 \begin{dBox}
@@ -79,26 +59,6 @@ In the following we present the API provided by dataClay to manage the federatio
 
 \end{dBox}
 
-% ------- unfederateAllObjects ---------
-\begin{dBox}
-
-\texttt{public static void \CALL{unfederateAllObjects}([DataClayInstanceID dcID])}
-\LINE
-
-{\it Description:}
-
-\begin{itemize}
-  \item Unfederates all the objects in the current dataClay instance with the indicated dataClay instance. If no \textit{dcID} is specified, the objects are unfederated from all the instances where they live.
-\end{itemize}
-
-{\it Parameters:}
-
-\begin{itemize}
-  \item \texttt{\bfseries dcID:} ID of the external dataClay. It must be previously registered.
-\end{itemize}
-
-\end{dBox}
-
 \subsection{Object methods}
 \label{sec:JavaFederationObject}
 
@@ -110,7 +70,7 @@ In the following we present the API provided by dataClay to manage the federatio
 {\it Description:}
 
 \begin{itemize}
-  \item Federates current object with another dataClay instance. 
+  \item Federates current object with another dataClay instance, replicating it in any of its backends.  
 \end{itemize}
 
 {\it Parameters:}
@@ -131,6 +91,26 @@ Person p1 = Person.getByAlias("person1");
 p1.federate(otherDC);
 \end{java}
 \end{tBox}
+
+% ------- federateToBackend ---------
+\begin{dBox}
+\texttt{public void \CALL{federateToBackend}(BackendID backend [,boolean recursive])}
+\LINE
+
+{\it Description:}
+
+\begin{itemize}
+  \item Federates current object with another dataClay instance, replicating it in the indicated backend. 
+\end{itemize}
+
+{\it Parameters:}
+
+\begin{itemize}
+  \item \texttt{\bfseries backendID:} ID of a backend in an external dataClay instance, which must be previously registered.
+  \item \texttt{\bfseries recursive:} when this flag is TRUE, all objects (recursively) referenced by the current one will also be federated (except those that are already present in the destination dataClay). This parameter is optional, default value is TRUE.
+\end{itemize}
+
+\end{dBox}
 
 % ------- getFederationSource ------
 

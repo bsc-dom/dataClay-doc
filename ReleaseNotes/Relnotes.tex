@@ -2,21 +2,23 @@
 \chapter*{Release notes}
 
 \begin{itemize}
-\item[] \textbf{2020, November : Release version 2.5}\newline
+\item[] \textbf{2021, June: Release version 2.6}\newline
     \begin{itemize}
     \item[] \textbf{New features}
         \begin{itemize}
-            \item[] Importing data models from other dataClay instances
-            \item[] Support for interfaces in the definition of data models in Java
-            \item[] Python mixins for exporting objects via MQTT and Kafka in JSON format
-            \item[] Slim and alpine versions of docker images	
+            \item[] Dynamic addition of backends
+            \item[] Federation of objects to a specific backend
+            \item[] Enabling garbage collection of an object attached to a live session
+            \item[] Registration of data models from a git repository in Docker environments	
         \end{itemize}
     \item[] \textbf{Improvements}
         \begin{itemize}
-            \item[] Faster serialization for \texttt{numpy.ndarray} 
-            \item[] Smooth shutdown for docker environments
-            \item[] Additional option of configuration via environment variables
-            \item[] Simplified activation of logging
+            \item[] Performance optimization in the creation of replicas, versions, consolidation of versions, and federation 
+            \item[] Performance optimization in object store methods to update and clone
+            \item[] Performance optimization in the serialization of objects in critical-path communications
+            \item[] Optimizations in memory/disk management and garbage collection of objects
+            \item[] Optimizations in caching
+            \item[] Improvements in metadata management to increase fault tolerance
             \item[] Bug fixes
         \end{itemize}
     \end{itemize}
